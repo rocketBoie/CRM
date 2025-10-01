@@ -70,20 +70,20 @@
         </div>
 
         <div class="mt-6 flex justify-end space-x-3">
-          <button
-            type="button"
-            class="px-4 py-2 bg-grayout text-textdark rounded"
+          <Button
             @click="close"
+            class="px-4 py-2 bg-red-500 text-gray-800 rounded hover:bg-red-500 transition"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+
+          <Button
             type="submit"
             :disabled="meta.submitting"
-            class="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
+            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition"
           >
             {{ editingUser ? "Update" : "Add" }}
-          </button>
+          </Button>
         </div>
       </Form>
     </div>
@@ -91,14 +91,16 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { defineComponent, ref, watch } from "vue";
 import { Form, Field } from "vee-validate";
 import * as yup from "yup";
 import { employeeStore } from "../stores/store";
-
+import Button from "./Button.vue";
 const store = employeeStore();
 const emit = defineEmits(["added", "close"]);
-
+const props = defineComponent({
+  Button: Button,
+});
 const isOpen = ref(false);
 const editingUser = ref(null);
 

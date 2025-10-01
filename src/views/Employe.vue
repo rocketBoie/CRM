@@ -29,10 +29,9 @@ function edit(employee) {
         <h1 class="text-4xl font-extrabold mb-6 text-gray-800">Employee CRM</h1>
         <Button
           @click="showAddUserModal"
-          :text="'Add User'"
           class="px-4 py-2 bg-blue-600 text-white rounded mb-4 cursor-pointer"
+          >Add User</Button
         >
-        </Button>
 
         <div class="overflow-x-auto shadow-md border border-gray-200 bg-white">
           <table class="min-w-full w-full divide-y divide-gray-200">
