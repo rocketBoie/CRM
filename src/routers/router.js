@@ -6,7 +6,7 @@ import Attendance from "../views/Attendance.vue";
 import Leaves from "../views/Leaves.vue";
 import Payrolls from "../views/Payrolls.vue";
 import Holidays from "../views/Holidays.vue";
-
+import EmployeeDetails from "../views/EmployeeDetails.vue";
 const routes = [
   { path: "/", name: "Main", component: Main },
   { path: "/services", name: "Services", component: Services },
@@ -15,6 +15,12 @@ const routes = [
   { path: "/leaves", name: "leaves", component: Leaves },
   { path: "/payroll", name: "Payroll", component: Payrolls },
   { path: "/holidays", name: "Holiday", component: Holidays },
+  {
+    path: "/employee/:id",
+    name: "EmployeeDetail",
+    component: EmployeeDetails,
+    props: true,
+  },
 ];
 
 export const router = createRouter({

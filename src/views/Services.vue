@@ -29,7 +29,9 @@
           <h2 class="text-xl font-semibold mb-4 text-textdark">
             📅 Leave Calendar
           </h2>
-          <div class="h-64 bg-graylight rounded-lg flex items-center justify-center text-gray-500">
+          <div
+            class="h-64 bg-graylight rounded-lg flex items-center justify-center text-gray-500"
+          >
             Calendar
           </div>
         </div>
@@ -45,13 +47,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import Cards from '../components/Cards.vue';
-import SideBar from '../components/SideBar.vue';
-import { employeeStore } from '../stores/store';
-const emp = employeeStore()
-
+import { ref } from "vue";
+import Cards from "../components/Cards.vue";
+import SideBar from "../components/SideBar.vue";
+import { employeeStore } from "../stores/store";
+const emp = employeeStore();
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,65 +1,113 @@
 <script setup>
 import { ref } from "vue";
 import SideBar from "../components/SideBar.vue";
-import Modal from "../components/Modal.vue";
 import { employeeStore } from "../stores/store";
-import Button from "../components/Button.vue";
+import { RouterLink } from "vue-router";
+
+import DxDataGrid from "devextreme-vue/data-grid";
+import { DxColumn, DxEditing, DxButton } from "devextreme-vue/data-grid";
+import "devextreme/dist/css/dx.light.css";
 
 const store = employeeStore();
-const modalRef = ref(null);
+const dataSource = ref(store.employees);
 
-function showAddUserModal() {
-  modalRef.value?.open();
+function onRowInserted(e) {
+  store.addEmployee(e.data);
 }
 
+function onRowUpdated(e) {
+  store.updateEmployee(e.data);
+}
 
-function edit(employee) {
-  modalRef.value?.open(employee);
+function onRowRemoved(e) {
+  store.removeUser(e.data.id);
 }
 </script>
 
 <template>
-  <div class="flex min-h-screen">
-    <div class="w-64">
+  <div
+    class="flex min-h-screen bg-gradient-to-br from-indigo-50 to-white text-gray-800 font-sans"
+  >
+    <aside class="w-64 bg-white border-r border-indigo-100 shadow-md">
       <SideBar />
-    </div>
-    <div class="flex-grow p-8">
-      <main>
-        <h1 class="text-4xl font-extrabold mb-6 text-gray-800">Employee CRM</h1>
-        <Button @click="showAddUserModal" class="px-4 py-2 bg-blue-600 text-white rounded mb-4 cursor-pointer">Add User</Button>
+    </aside>
 
-        <div class="overflow-x-auto shadow-md border border-gray-200 bg-white">
-          <table class="min-w-full w-full divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Position</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Department</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Salary</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Edit</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr v-for="employee in store.employees" :key="employee.id">
-                <td class="px-6 py-4 text-sm text-gray-700 font-medium">{{ employee.id }}</td>
-                <td class="px-6 py-4 text-sm text-gray-900">{{ employee.name }}</td>
-                <td class="px-6 py-4 text-sm text-blue-600 hover:underline cursor-pointer">{{ employee.email }}</td>
-                <td class="px-6 py-4 text-sm text-gray-700">{{ employee.position }}</td>
-                <td class="px-6 py-4 text-sm text-gray-700">{{ employee.phone }}</td>
-                <td class="px-6 py-4 text-sm text-gray-700">{{ employee.department }}</td>
-                <td class="px-6 py-4 text-sm text-gray-700">{{ employee.salary }} </td>
-                <td class="px-6 py-4 text-sm text-gray-700 cursor-pointer" @click="edit(employee)">Edit</td>
-                <td class="px-6 py-4 text-sm text-gray-700 cursor-pointer" @click="store.removeUser(employee.id)">Remove</td>
-              </tr>
-            </tbody>
-          </table>
+    <main class="flex-grow p-10 space-y-8">
+      <header>
+        <h1
+          class="text-5xl font-bold text-indigo-900 drop-shadow-lg tracking-tight"
+        >
+          Employee CRM
+        </h1>
+        <p class="text-lg text-indigo-500 mt-2">
+          Manage employee records professionally and efficiently.
+        </p>
+      </header>
+
+      <section
+        class="bg-white rounded-2xl shadow-xl border border-indigo-200 p-6 overflow-hidden"
+      >
+        <h2 class="text-2xl font-semibold text-indigo-800 mb-4">
+          Employee List
+        </h2>
+
+        <div class="w-full h-[600px]">
+          <DxDataGrid
+            :data-source="dataSource"
+            show-borders
+            :column-auto-width="true"
+            :allow-column-resizing="true"
+            :word-wrap-enabled="true"
+            row-alternation-enabled
+            class="rounded-xl overflow-hidden"
+            height="600"
+            @row-inserted="onRowInserted"
+            @row-updated="onRowUpdated"
+            @row-removed="onRowRemoved"
+          >
+            <DxEditing
+              mode="popup"
+              :allow-adding="true"
+              :allow-updating="true"
+              :allow-deleting="true"
+            />
+
+            <DxColumn
+              data-field="id"
+              caption="ID"
+              width="70"
+              :allow-editing="false"
+            />
+
+            <DxColumn data-field="name" caption="Name">
+              <template #cellTemplate="{ data }">
+                <RouterLink
+                  :to="`/employee/${data.id}`"
+                  class="text-indigo-600 hover:underline font-medium"
+                >
+                  {{ data.name }}
+                </RouterLink>
+              </template>
+            </DxColumn>
+
+            <DxColumn data-field="email" caption="Email" />
+            <DxColumn data-field="position" caption="Position" />
+            <DxColumn data-field="phone" caption="Phone" />
+            <DxColumn data-field="department" caption="Department" />
+            <DxColumn
+              data-field="salary"
+              caption="Salary"
+              format="currency"
+              editor-type="dxNumberBox"
+            />
+
+            <DxColumn type="buttons" width="120">
+              <DxButton name="edit" />
+              <DxButton name="delete" />
+            </DxColumn>
+          </DxDataGrid>
         </div>
-        <Modal ref="modalRef" />
-      </main>
-    </div>
+      </section>
+    </main>
   </div>
 </template>
