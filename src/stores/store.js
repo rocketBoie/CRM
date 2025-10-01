@@ -5,6 +5,14 @@ export const employeeStore = defineStore("employee", {
   state: () => ({
     employees: [...employeesData],
     len: employeesData.length,
+    attendanceByDay: [
+      { date: "2025-09-28", present: 20, absent: 5 },
+      { date: "2025-09-29", present: 22, absent: 3 },
+      { date: "2025-09-30", present: 25, absent: 2 },
+      { date: "2025-10-01", present: 23, absent: 4 },
+      { date: "2025-10-02", present: 24, absent: 1 },
+      { date: "2025-10-03", present: 26, absent: 0 },
+    ],
   }),
   persist: true,
 

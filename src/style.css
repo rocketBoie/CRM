@@ -2,7 +2,6 @@
 @import "tailwindcss";
 @import "flowbite/src/themes/default";
 
-
 * {
   font-family: "Labrada", serif;
   font-optical-sizing: auto;
