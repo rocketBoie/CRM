@@ -15,12 +15,11 @@ function toggleStatus(employee) {
   store.toggleStatus(employee.id)
 }
 
-
 function edit(employee) {
   modalRef.value?.open(employee)
 }
-
 </script>
+
 <template>
   <div class="flex min-h-screen">
     <div class="w-64">
@@ -37,67 +36,43 @@ function edit(employee) {
           <table class="min-w-full w-full divide-y divide-gray-200">
             <thead class="bg-gray-100">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  ID
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Name
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Email
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Position
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Phone
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Department
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Status
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Actions
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Edit
-                </th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Position</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Department</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
               <tr v-for="employee in store.employees" :key="employee.id">
-                <td class="px-6 py-4 text-sm text-gray-700 font-medium">
-                  {{ employee.id }}
-                </td>
+                <td class="px-6 py-4 text-sm text-gray-700 font-medium">{{ employee.id }}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ employee.name }}</td>
-                <td class="px-6 py-4 text-sm text-blue-600 hover:underline cursor-pointer">
-                  {{ employee.email }}
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-700">
-                  {{ employee.position }}
-                </td>
+                <td class="px-6 py-4 text-sm text-blue-600 hover:underline cursor-pointer">{{ employee.email }}</td>
+                <td class="px-6 py-4 text-sm text-gray-700">{{ employee.position }}</td>
                 <td class="px-6 py-4 text-sm text-gray-700">{{ employee.phone }}</td>
-                <td class="px-6 py-4 text-sm text-gray-700">
-                  {{ employee.department }}
-                </td>
+                <td class="px-6 py-4 text-sm text-gray-700">{{ employee.department }}</td>
                 <td class="px-6 py-4 text-sm font-semibold cursor-pointer"
                   :class="employee.status === 'Active' ? 'text-green-600' : 'text-red-600'"
                   @click="toggleStatus(employee)">
                   {{ employee.status }}
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-700 cursor-pointer" @click="store.removeUser(employee.id)">
-                  Remove
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-700 cursor-pointer" @click="edit(employee)">
-                  Edit
+                <td class="px-6 py-4 space-x-4">
+                  <button class="text-red-600 hover:underline cursor-pointer" @click="store.removeUser(employee.id)">
+                    Remove
+                  </button>
+                  <button class="text-blue-600 hover:underline cursor-pointer" @click="edit(employee)">
+                    Edit
+                  </button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <Modal ref="modalRef"  />
+
+        <Modal ref="modalRef" />
       </main>
     </div>
   </div>

@@ -22,7 +22,7 @@
         <h2 class="text-xl font-semibold mb-4">Leave Calendar</h2>
       </div>
 
-      <div class="bg-white p-4 rounded-lg shadow-lg">
+      <div class="bg-white p-4 rounded-lg sh1adow-lg">
         <h2 class="text-xl font-semibold mb-4">Recent Activities</h2>
       </div>
     </div>
