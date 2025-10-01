@@ -4,7 +4,7 @@
 
     <div class="flex-1 ml-64 p-6">
       <header class="mb-6">
-        <h1 class="text-3xl font-semibold">Employee Dashboard</h1>
+        <h1 class="text-4xl font-extrabold mb-6 text-gray-800">Dashboard</h1>
       </header>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
@@ -34,10 +34,9 @@ import { ref } from 'vue';
 import Cards from '../components/Cards.vue';
 import SideBar from '../components/SideBar.vue';
 import { employeeStore } from '../stores/store';
+
 const emp = employeeStore()
 
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
