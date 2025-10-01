@@ -1,20 +1,19 @@
-<script setup>
-
-const props = defineProps({
-  num: Number,
-  text: String,
-  imge: String,
-});
-</script>
-
 <template>
-  <div class="flex flex-col w-60 border-2 border-dashed border-gray-400 gap-6">
-    <div class="flex justify-between p-4 items-center">
-      <h1 class="text-4xl">{{ num }}</h1>
-      <h1 class="text-5xl object-cover">{{ imge }} </h1>
-    </div>
-    <div class="p-4 text-base">
-      {{ text }}
+  <div
+    class="bg-white rounded-lg shadow p-5 flex items-center gap-4 border border-grayout hover:border-primary transition"
+  >
+    <div class="text-3xl">{{ icon }}</div>
+    <div>
+      <div class="text-sm text-gray-500">{{ label }}</div>
+      <div class="text-2xl font-semibold text-textdark">{{ value }}</div>
     </div>
   </div>
 </template>
+
+<script setup>
+defineProps({
+  icon: String,
+  label: String,
+  value: [String, Number],
+});
+</script>

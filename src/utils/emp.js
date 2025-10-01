@@ -6,7 +6,7 @@ const employees = [
     position: "Sales Manager",
     phone: "+1-555-1234",
     department: "Sales",
-    status: "Active"
+    salary: 75000
   },
   {
     id: 2,
@@ -15,7 +15,7 @@ const employees = [
     position: "Customer Support",
     phone: "+1-555-2345",
     department: "Support",
-    status: "Active"
+    salary: 48000
   },
   {
     id: 3,
@@ -24,7 +24,7 @@ const employees = [
     position: "Marketing Specialist",
     phone: "+1-555-3456",
     department: "Marketing",
-    status: "Inactive"
+    salary: 55000
   },
   {
     id: 4,
@@ -33,7 +33,7 @@ const employees = [
     position: "Product Manager",
     phone: "+1-555-4567",
     department: "Product",
-    status: "Active"
+    salary: 90000
   },
   {
     id: 5,
@@ -42,7 +42,7 @@ const employees = [
     position: "Software Engineer",
     phone: "+1-555-5678",
     department: "Development",
-    status: "Active"
+    salary: 85000
   },
   {
     id: 6,
@@ -51,7 +51,7 @@ const employees = [
     position: "QA Engineer",
     phone: "+1-555-6789",
     department: "Development",
-    status: "Active"
+    salary: 70000
   },
   {
     id: 7,
@@ -60,7 +60,7 @@ const employees = [
     position: "HR Specialist",
     phone: "+1-555-7890",
     department: "Human Resources",
-    status: "Active"
+    salary: 60000
   },
   {
     id: 8,
@@ -69,7 +69,7 @@ const employees = [
     position: "Finance Analyst",
     phone: "+1-555-8901",
     department: "Finance",
-    status: "Inactive"
+    salary: 65000
   },
   {
     id: 9,
@@ -78,7 +78,7 @@ const employees = [
     position: "UX Designer",
     phone: "+1-555-9012",
     department: "Design",
-    status: "Active"
+    salary: 72000
   },
   {
     id: 10,
@@ -87,7 +87,7 @@ const employees = [
     position: "DevOps Engineer",
     phone: "+1-555-0123",
     department: "Development",
-    status: "Active"
+    salary: 88000
   }
 ];
 

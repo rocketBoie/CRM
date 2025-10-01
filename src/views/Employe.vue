@@ -3,20 +3,18 @@ import { ref } from "vue";
 import SideBar from "../components/SideBar.vue";
 import Modal from "../components/Modal.vue";
 import { employeeStore } from "../stores/store";
+import Button from "../components/Button.vue";
 
-const store = employeeStore()
-const modalRef = ref(null)
+const store = employeeStore();
+const modalRef = ref(null);
 
 function showAddUserModal() {
-  modalRef.value?.open()
+  modalRef.value?.open();
 }
 
-function toggleStatus(employee) {
-  store.toggleStatus(employee.id)
-}
 
 function edit(employee) {
-  modalRef.value?.open(employee)
+  modalRef.value?.open(employee);
 }
 </script>
 
@@ -28,9 +26,7 @@ function edit(employee) {
     <div class="flex-grow p-8">
       <main>
         <h1 class="text-4xl font-extrabold mb-6 text-gray-800">Employee CRM</h1>
-        <button @click="showAddUserModal" class="px-4 py-2 bg-blue-600 text-white rounded mb-4 cursor-pointer">
-          Add User
-        </button>
+        <Button @click="showAddUserModal" class="px-4 py-2 bg-blue-600 text-white rounded mb-4 cursor-pointer">Add User</Button>
 
         <div class="overflow-x-auto shadow-md border border-gray-200 bg-white">
           <table class="min-w-full w-full divide-y divide-gray-200">
@@ -42,7 +38,8 @@ function edit(employee) {
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Position</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Department</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Salary</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Edit</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
               </tr>
             </thead>
@@ -54,24 +51,13 @@ function edit(employee) {
                 <td class="px-6 py-4 text-sm text-gray-700">{{ employee.position }}</td>
                 <td class="px-6 py-4 text-sm text-gray-700">{{ employee.phone }}</td>
                 <td class="px-6 py-4 text-sm text-gray-700">{{ employee.department }}</td>
-                <td class="px-6 py-4 text-sm font-semibold cursor-pointer"
-                  :class="employee.status === 'Active' ? 'text-green-600' : 'text-red-600'"
-                  @click="toggleStatus(employee)">
-                  {{ employee.status }}
-                </td>
-                <td class="px-6 py-4 space-x-4">
-                  <button class="text-red-600 hover:underline cursor-pointer" @click="store.removeUser(employee.id)">
-                    Remove
-                  </button>
-                  <button class="text-blue-600 hover:underline cursor-pointer" @click="edit(employee)">
-                    Edit
-                  </button>
-                </td>
+                <td class="px-6 py-4 text-sm text-gray-700">{{ employee.salary }} </td>
+                <td class="px-6 py-4 text-sm text-gray-700 cursor-pointer" @click="edit(employee)">Edit</td>
+                <td class="px-6 py-4 text-sm text-gray-700 cursor-pointer" @click="store.removeUser(employee.id)">Remove</td>
               </tr>
             </tbody>
           </table>
         </div>
-
         <Modal ref="modalRef" />
       </main>
     </div>
