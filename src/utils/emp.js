@@ -6,7 +6,12 @@ const employees = [
     position: "Sales Manager",
     phone: "+1-555-1234",
     department: "Sales",
-    salary: 75000
+    salary: 75000,
+    active: true,
+    totalPresent: 20,
+    halfDayLeave: 2,
+    fullDayLeave: 5,
+    paidLeave: 10
   },
   {
     id: 2,
@@ -15,7 +20,12 @@ const employees = [
     position: "Customer Support",
     phone: "+1-555-2345",
     department: "Support",
-    salary: 48000
+    salary: 48000,
+    active: true,
+    totalPresent: 18,
+    halfDayLeave: 1,
+    fullDayLeave: 3,
+    paidLeave: 8
   },
   {
     id: 3,
@@ -24,7 +34,12 @@ const employees = [
     position: "Marketing Specialist",
     phone: "+1-555-3456",
     department: "Marketing",
-    salary: 55000
+    salary: 55000,
+    active: true,
+    totalPresent: 22,
+    halfDayLeave: 0,
+    fullDayLeave: 4,
+    paidLeave: 12
   },
   {
     id: 4,
@@ -33,7 +48,12 @@ const employees = [
     position: "Product Manager",
     phone: "+1-555-4567",
     department: "Product",
-    salary: 90000
+    salary: 90000,
+    active: true,
+    totalPresent: 23,
+    halfDayLeave: 3,
+    fullDayLeave: 6,
+    paidLeave: 15
   },
   {
     id: 5,
@@ -42,7 +62,12 @@ const employees = [
     position: "Software Engineer",
     phone: "+1-555-5678",
     department: "Development",
-    salary: 85000
+    salary: 85000,
+    active: true,
+    totalPresent: 19,
+    halfDayLeave: 1,
+    fullDayLeave: 2,
+    paidLeave: 10
   },
   {
     id: 6,
@@ -51,7 +76,12 @@ const employees = [
     position: "QA Engineer",
     phone: "+1-555-6789",
     department: "Development",
-    salary: 70000
+    salary: 70000,
+    active: false,
+    totalPresent: 15,
+    halfDayLeave: 0,
+    fullDayLeave: 1,
+    paidLeave: 5
   },
   {
     id: 7,
@@ -60,7 +90,12 @@ const employees = [
     position: "HR Specialist",
     phone: "+1-555-7890",
     department: "Human Resources",
-    salary: 60000
+    salary: 60000,
+    active: true,
+    totalPresent: 21,
+    halfDayLeave: 2,
+    fullDayLeave: 7,
+    paidLeave: 10
   },
   {
     id: 8,
@@ -69,7 +104,12 @@ const employees = [
     position: "Finance Analyst",
     phone: "+1-555-8901",
     department: "Finance",
-    salary: 65000
+    salary: 65000,
+    active: true,
+    totalPresent: 20,
+    halfDayLeave: 1,
+    fullDayLeave: 3,
+    paidLeave: 9
   },
   {
     id: 9,
@@ -78,7 +118,12 @@ const employees = [
     position: "UX Designer",
     phone: "+1-555-9012",
     department: "Design",
-    salary: 72000
+    salary: 72000,
+    active: true,
+    totalPresent: 18,
+    halfDayLeave: 0,
+    fullDayLeave: 2,
+    paidLeave: 11
   },
   {
     id: 10,
@@ -87,7 +132,12 @@ const employees = [
     position: "DevOps Engineer",
     phone: "+1-555-0123",
     department: "Development",
-    salary: 88000
+    salary: 88000,
+    active: false,
+    totalPresent: 17,
+    halfDayLeave: 1,
+    fullDayLeave: 5,
+    paidLeave: 14
   }
 ];
 

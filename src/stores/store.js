@@ -1,24 +1,15 @@
 import { defineStore } from "pinia";
-import employeesData from "../utils/emp";
-import employees from "../utils/emp";
+import employeesData from "../utils/emp"; // Assuming this is the initial data
 
 export const employeeStore = defineStore("employee", {
   state: () => ({
     employees: [...employeesData],
     len: employeesData.length,
-    attendanceByDay: [
-      { date: "2025-09-28", present: 20, absent: 5 },
-      { date: "2025-09-29", present: 22, absent: 3 },
-      { date: "2025-09-30", present: 25, absent: 2 },
-      { date: "2025-10-01", present: 23, absent: 4 },
-      { date: "2025-10-02", present: 24, absent: 1 },
-      { date: "2025-10-03", present: 26, absent: 0 },
-    ],
   }),
   persist: true,
   
-  onMounted(){
-    alert(employees)
+  onMounted() {
+    alert("Employees data loaded.");
   },
 
   actions: {
@@ -35,21 +26,58 @@ export const employeeStore = defineStore("employee", {
         position: newUser.position,
         phone: newUser.phone,
         department: newUser.department,
-        salary : newUser.salary,
+        salary: newUser.salary,
+        totalPresent: 0, 
+        halfDayLeave: 0, 
+        fullDayLeave: 0, 
+        paidLeave: 0, 
       });
       this.len = this.employees.length;
     },
-
-    
 
     removeUser(id) {
       this.employees = this.employees.filter((item) => item.id !== id);
       this.len -= 1;
     },
+
     updateUser(id, values) {
       const emp = this.employees.find((e) => e.id === id);
       if (emp) {
         Object.assign(emp, values);
+      }
+    },
+
+    updateAttendanceStatus(id, status) {
+      const emp = this.employees.find((e) => e.id === id);
+      if (emp) {
+        switch (status) {
+          case 'Present':
+            emp.totalPresent += 1; 
+            break;
+          case 'Half-Day':
+            emp.halfDayLeave += 1; 
+            break;
+          case 'Leave':
+            emp.fullDayLeave += 1; 
+            break;
+          case 'Absent':
+            break;
+          default:
+            break;
+        }
+      }
+    },
+
+    updateLeaveCount(id, leaveType, count) {
+      const emp = this.employees.find((e) => e.id === id);
+      if (emp) {
+        if (leaveType === 'half') {
+          emp.halfDayLeave += count;
+        } else if (leaveType === 'full') {
+          emp.fullDayLeave += count;
+        } else if (leaveType === 'paid') {
+          emp.paidLeave += count;
+        }
       }
     },
   },
