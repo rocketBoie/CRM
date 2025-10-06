@@ -8,10 +8,10 @@ const employees = [
     department: "Sales",
     salary: 75000,
     active: true,
-    totalPresent: 20,
-    halfDayLeave: 2,
-    fullDayLeave: 5,
-    paidLeave: 10
+    totalPresent: 0,
+    halfDayLeave: 0,
+    fullDayLeave: 0,
+    paidLeave: 0,
   },
   {
     id: 2,
@@ -22,10 +22,10 @@ const employees = [
     department: "Support",
     salary: 48000,
     active: true,
-    totalPresent: 18,
-    halfDayLeave: 1,
-    fullDayLeave: 3,
-    paidLeave: 8
+    totalPresent: 0,
+    halfDayLeave: 0,
+    fullDayLeave: 0,
+    paidLeave: 0,
   },
   {
     id: 3,
@@ -36,10 +36,10 @@ const employees = [
     department: "Marketing",
     salary: 55000,
     active: true,
-    totalPresent: 22,
+    totalPresent: 0,
     halfDayLeave: 0,
-    fullDayLeave: 4,
-    paidLeave: 12
+    fullDayLeave: 0,
+    paidLeave: 0,
   },
   {
     id: 4,
@@ -50,10 +50,10 @@ const employees = [
     department: "Product",
     salary: 90000,
     active: true,
-    totalPresent: 23,
-    halfDayLeave: 3,
-    fullDayLeave: 6,
-    paidLeave: 15
+    totalPresent: 0,
+    halfDayLeave: 0,
+    fullDayLeave: 0,
+    paidLeave: 0,
   },
   {
     id: 5,
@@ -64,10 +64,10 @@ const employees = [
     department: "Development",
     salary: 85000,
     active: true,
-    totalPresent: 19,
-    halfDayLeave: 1,
-    fullDayLeave: 2,
-    paidLeave: 10
+    totalPresent: 0,
+    halfDayLeave: 0,
+    fullDayLeave: 0,
+    paidLeave: 0,
   },
   {
     id: 6,
@@ -78,10 +78,10 @@ const employees = [
     department: "Development",
     salary: 70000,
     active: false,
-    totalPresent: 15,
+    totalPresent: 0,
     halfDayLeave: 0,
-    fullDayLeave: 1,
-    paidLeave: 5
+    fullDayLeave: 0,
+    paidLeave: 0,
   },
   {
     id: 7,
@@ -92,10 +92,10 @@ const employees = [
     department: "Human Resources",
     salary: 60000,
     active: true,
-    totalPresent: 21,
-    halfDayLeave: 2,
-    fullDayLeave: 7,
-    paidLeave: 10
+    totalPresent: 0,
+    halfDayLeave: 0,
+    fullDayLeave: 0,
+    paidLeave: 0,
   },
   {
     id: 8,
@@ -106,10 +106,10 @@ const employees = [
     department: "Finance",
     salary: 65000,
     active: true,
-    totalPresent: 20,
-    halfDayLeave: 1,
-    fullDayLeave: 3,
-    paidLeave: 9
+    totalPresent: 0,
+    halfDayLeave: 0,
+    fullDayLeave: 0,
+    paidLeave: 0,
   },
   {
     id: 9,
@@ -120,10 +120,10 @@ const employees = [
     department: "Design",
     salary: 72000,
     active: true,
-    totalPresent: 18,
+    totalPresent: 0,
     halfDayLeave: 0,
-    fullDayLeave: 2,
-    paidLeave: 11
+    fullDayLeave: 0,
+    paidLeave: 0,
   },
   {
     id: 10,
@@ -134,11 +134,11 @@ const employees = [
     department: "Development",
     salary: 88000,
     active: false,
-    totalPresent: 17,
-    halfDayLeave: 1,
-    fullDayLeave: 5,
-    paidLeave: 14
-  }
+    totalPresent: 0,
+    halfDayLeave: 0,
+    fullDayLeave: 0,
+    paidLeave: 0,
+  },
 ];
 
 export default employees;

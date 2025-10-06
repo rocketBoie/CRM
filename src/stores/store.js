@@ -3,11 +3,14 @@ import employeesData from "../utils/emp"; // Assuming this is the initial data
 
 export const employeeStore = defineStore("employee", {
   state: () => ({
-    employees: [...employeesData],
+    employees: employeesData.map((emp) => ({
+      ...emp,
+      attendanceData: emp.attendanceData || {}, // e.g. { "2025-10-06": "present" }
+    })),
     len: employeesData.length,
   }),
   persist: true,
-  
+
   onMounted() {
     alert("Employees data loaded.");
   },
@@ -27,10 +30,11 @@ export const employeeStore = defineStore("employee", {
         phone: newUser.phone,
         department: newUser.department,
         salary: newUser.salary,
-        totalPresent: 0, 
-        halfDayLeave: 0, 
-        fullDayLeave: 0, 
-        paidLeave: 0, 
+        totalPresent: 0,
+        halfDayLeave: 0,
+        fullDayLeave: 0,
+        paidLeave: 0,
+        attendanceData: {},
       });
       this.len = this.employees.length;
     },
@@ -47,20 +51,73 @@ export const employeeStore = defineStore("employee", {
       }
     },
 
-    updateAttendanceStatus(id, status) {
+    /**
+     * Update attendance status for a specific employee on a specific date
+     * @param {Number} id - employee id
+     * @param {String} dateStr - date string in "YYYY-MM-DD" format
+     * @param {String|null} status - attendance status: "present", "half-day", "full-day", "paid-leave" or null (absent)
+     */
+    // In your Pinia store actions:
+    updateAttendance(id, dateStr, status) {
       const emp = this.employees.find((e) => e.id === id);
       if (emp) {
+        if (!emp.attendanceData) {
+          emp.attendanceData = {};
+        }
+
+        emp.attendanceData[dateStr] = status;
+
+        // Recalculate summary counts for this employee
+        // Reset counts
+        emp.totalPresent = 0;
+        emp.halfDayLeave = 0;
+        emp.fullDayLeave = 0;
+        emp.paidLeave = 0;
+
+        // Count attendance statuses
+        for (const key in emp.attendanceData) {
+          switch (emp.attendanceData[key]) {
+            case "present":
+              emp.totalPresent += 1;
+              break;
+            case "half-day":
+              emp.halfDayLeave += 1;
+              break;
+            case "full-day":
+              emp.fullDayLeave += 1;
+              break;
+            case "paid-leave":
+              emp.paidLeave += 1;
+              break;
+            // null or absent do nothing
+          }
+        }
+      }
+    },
+
+    /**
+     * Recalculate totalPresent, halfDayLeave, fullDayLeave, paidLeave from attendanceData
+     */
+    recalculateSummary(emp) {
+      // Reset counts
+      emp.totalPresent = 0;
+      emp.halfDayLeave = 0;
+      emp.fullDayLeave = 0;
+      emp.paidLeave = 0;
+
+      for (const status of Object.values(emp.attendanceData)) {
         switch (status) {
-          case 'Present':
-            emp.totalPresent += 1; 
+          case "present":
+            emp.totalPresent++;
             break;
-          case 'Half-Day':
-            emp.halfDayLeave += 1; 
+          case "half-day":
+            emp.halfDayLeave++;
             break;
-          case 'Leave':
-            emp.fullDayLeave += 1; 
+          case "full-day":
+            emp.fullDayLeave++;
             break;
-          case 'Absent':
+          case "paid-leave":
+            emp.paidLeave++;
             break;
           default:
             break;
@@ -68,14 +125,20 @@ export const employeeStore = defineStore("employee", {
       }
     },
 
+    // Your old updateAttendanceStatus can be removed or repurposed if needed
+
+    updateAttendanceStatus(id, status) {
+      // deprecated or for legacy support
+    },
+
     updateLeaveCount(id, leaveType, count) {
       const emp = this.employees.find((e) => e.id === id);
       if (emp) {
-        if (leaveType === 'half') {
+        if (leaveType === "half") {
           emp.halfDayLeave += count;
-        } else if (leaveType === 'full') {
+        } else if (leaveType === "full") {
           emp.fullDayLeave += count;
-        } else if (leaveType === 'paid') {
+        } else if (leaveType === "paid") {
           emp.paidLeave += count;
         }
       }
