@@ -83,80 +83,63 @@ const employeeStats = computed(() => {
 </script>
 
 <template>
-    <div class="flex min-h-screen">
-        <div class="w-64">
+    <div class="flex min-h-screen bg-gray-50">
+        
+        <div class="w-64 border-r border-gray-200 bg-white shadow-md">
             <SideBar />
         </div>
 
         <div class="flex-grow p-8">
             <main>
-                <h1 class="text-4xl font-extrabold mb-6 text-gray-800">
+                <h1 class="text-4xl font-extrabold mb-8 text-gray-800">
                     Employee Attendance Summary
                 </h1>
 
                 <div class="mb-6">
-                    <label class="font-semibold mr-2">Select Month:</label>
-                    <input type="month" v-model="monthYear" class="border px-2 py-1 rounded" />
+                    <label class="font-medium mr-2 text-gray-700">Select Month:</label>
+                    <input type="month" v-model="monthYear"
+                        class="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                 </div>
 
-                <div v-if="store.employees.length === 0" class="text-gray-500 text-center">
+                <div v-if="store.employees.length === 0" class="text-gray-500 text-center py-10">
                     No employee data available.
                 </div>
 
-                <div v-else class="overflow-x-auto shadow-md border border-gray-200 bg-white rounded-lg">
-                    <table class="min-w-full w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Total Present</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Half-Day Leave</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Full-Day Leave</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Paid Leave</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase"> Working Days</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase"> Attendance % </th>
-                            </tr>
-                        </thead>
-
-                        <tbody class="divide-y divide-gray-100">
-                            <tr v-for="emp in employeeStats" :key="emp.id" @click="goToEmployeeCalendar(emp)"
-                                class="cursor-pointer hover:bg-gray-100">
-                                <td class="px-6 py-4 text-sm text-gray-700 font-medium">{{ emp.id }}</td>
-                                <td class="px-6 py-4 text-sm text-blue-900 font-semibold">{{ emp.name }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-700">{{ emp.stats.totalPresent }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-700">{{ emp.stats.halfDayLeave }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-700">{{ emp.stats.fullDayLeave }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-700">{{ emp.stats.paidLeave }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-700">{{ emp.workingDays }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-700">{{ emp.attendancePercentage }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div v-else class="overflow-x-auto">
+                    <div class="min-w-full bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 sticky top-0 z-10 ">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xl font-bold text-gray-600 uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-4 text-left text-xl font-bold text-gray-600 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-4 text-left text-xl font-bold text-gray-600 uppercase tracking-wider">Present</th>
+                                    <th class="px-6 py-4 text-left text-xl font-bold text-gray-600 uppercase tracking-wider">Half-Day</th>
+                                    <th class="px-6 py-4 text-left text-xl font-bold text-gray-600 uppercase tracking-wider">Full-Day</th>
+                                    <th class="px-6 py-4 text-left text-xl font-bold text-gray-600 uppercase tracking-wider">Paid Leave</th>
+                                    <th class="px-6 py-4 text-left text-xl font-bold text-gray-600 uppercase tracking-wider">Working Days</th>
+                                    <th class="px-6 py-4 text-left text-xl font-bold text-gray-600 uppercase tracking-wider">Attendance %</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 bg-white">
+                                <tr v-for="emp in employeeStats" :key="emp.id" @click="goToEmployeeCalendar(emp)"
+                                    class="hover:bg-gray-50 cursor-pointer transition duration-150 ease-in-out">
+                                    <td class="px-6 py-4 text-xl font-medium text-gray-700">{{ emp.id }}</td>
+                                    <td class="px-6 py-4 text-xl font-semibold text-blue-800">{{ emp.name }}</td>
+                                    <td class="px-6 py-4 text-xl text-gray-600">{{ emp.stats.totalPresent }}</td>
+                                    <td class="px-6 py-4 text-xl text-gray-600">{{ emp.stats.halfDayLeave }}</td>
+                                    <td class="px-6 py-4 text-xl text-gray-600">{{ emp.stats.fullDayLeave }}</td>
+                                    <td class="px-6 py-4 text-xl text-gray-600">{{ emp.stats.paidLeave }}</td>
+                                    <td class="px-6 py-4 text-xl text-gray-600">{{ emp.workingDays }}</td>
+                                    <td class="px-6 py-4 text-xl font-bold text-green-700">{{ emp.attendancePercentage }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </main>
         </div>
     </div>
 </template>
 
-<style scoped>
-table tr:hover {
-    background-color: #f7fafc;
-}
-
-table {
-    border-collapse: separate;
-    border-spacing: 0 10px;
-}
-
-
-input[type="month"] {
-    width: 180px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-thead {
-    background-color: #f3f4f6;
-}
-</style>
+<style scoped></style>

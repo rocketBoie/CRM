@@ -57,9 +57,12 @@ const daysInMonth = computed(() => {
 });
 
 const today = new Date();
+today.setHours(0, 0, 0, 0); 
 
 function toggleAttendance(date) {
-  if (!employee.value) return;
+  const targetDate = new Date(date);
+  targetDate.setHours(0, 0, 0, 0);
+  if (targetDate > today || !employee.value) return;
 
   const dateStr = formatDateISO(date);
   const currentStatus = employee.value.attendanceData?.[dateStr] ?? null;
@@ -71,6 +74,11 @@ function toggleAttendance(date) {
 }
 
 function getTooltip(date) {
+  const dateOnly = new Date(date);
+  dateOnly.setHours(0, 0, 0, 0);
+
+  if (dateOnly > today) return "Cannot edit future date";
+
   if (!employee.value) return "Loading...";
   const status = employee.value.attendanceData?.[formatDateISO(date)];
   return status
@@ -84,26 +92,6 @@ function getTooltip(date) {
 function goBack() {
   router.go(-1);
 }
-
-function calculateat(attendanceData) {
-  if (!attendanceData) return 0;
-
-  let presentCount = 0;
-  let halfDayCount = 0;
-  let fullDayCount = 0;
-
-  for (let date in attendanceData) {
-    if (attendanceData[date] === "present") presentCount++;
-    if (attendanceData[date] === "half-day") halfDayCount++;
-    if (attendanceData[date] === "full-day") fullDayCount++;
-  }
-
-  const totalDaysInMonth = daysInMonth.value.length;
-  if (totalDaysInMonth === 0) return 0;
-  const totalWorkedDays = presentCount + 0.5 * halfDayCount + fullDayCount;
-  return ((totalWorkedDays / totalDaysInMonth) * 100).toFixed(2);
-}
-
 </script>
 
 <template>
@@ -113,27 +101,11 @@ function calculateat(attendanceData) {
     </div>
 
     <div class="flex-grow p-8">
-      <div class="mb-6">
-        <button @click="goBack"
-          class="bg-indigo-600 text-white px-4 py-2 rounded shadow-lg hover:bg-indigo-700 focus:outline-none">
-          &larr; Go Back
-        </button>
-      </div>
-
-      <div v-if="employee" class="bg-white p-6 rounded-lg shadow-lg mb-6">
-        <h3 class="text-2xl font-semibold text-indigo-900 mb-4">Employee Details</h3>
-        <div class="space-y-3 text-gray-700">
-          <p><strong>Name:</strong> {{ employee.name }}</p>
-          <p><strong>Email:</strong> {{ employee.email }}</p>
-          <p><strong>Position:</strong> {{ employee.position }}</p>
-          <p><strong>Department:</strong> {{ employee.department }}</p>
-          <p><strong>Attendance Rate:</strong> {{ calculateat(employee.attendanceData) }}%</p>
-          <p><strong>Total Present : </strong> {{ employee.totalPresent }}</p>
-        </div>
-      </div>
-
       <div class="bg-white p-6 rounded-lg shadow-lg">
         <h2 class="text-3xl font-semibold text-indigo-900 mb-6" v-if="employee">
+          <button @click="goBack" class="cursor-pointer">
+            &larr;
+          </button>
           Attendance Calendar for {{ employee.name }}
         </h2>
         <h2 v-else class="text-3xl font-semibold text-gray-500 mb-6">
@@ -157,17 +129,25 @@ function calculateat(attendanceData) {
           <template v-for="n in new Date(selectedYear, selectedMonth, 1).getDay()" :key="'empty-' + n">
             <div></div>
           </template>
+
           <template v-for="date in daysInMonth" :key="formatDateISO(date)">
-            <button type="button" :disabled="date.getDay() === 0"
+            <button type="button" :disabled="date.getDay() === 0 || date > today"
               class="p-4 rounded-lg cursor-pointer select-none transition-all duration-300 ease-in-out" :class="{
-                'bg-green-300': employee?.attendanceData?.[formatDateISO(date)] === 'present',
-                'bg-yellow-300': employee?.attendanceData?.[formatDateISO(date)] === 'half-day',
-                'bg-red-300': employee?.attendanceData?.[formatDateISO(date)] === 'full-day',
-                'bg-blue-300': employee?.attendanceData?.[formatDateISO(date)] === 'paid-leave',
-                'bg-white hover:bg-gray-100': !employee?.attendanceData?.[formatDateISO(date)],
-                'border-2 border-indigo-600': date.toDateString() === today.toDateString(),
-                'disabled-sunday': date.getDay() === 0
-              }" @click="date.getDay() !== 0 && toggleAttendance(date)" :title="getTooltip(date)"
+                'bg-green-300':
+                  employee?.attendanceData?.[formatDateISO(date)] === 'present',
+                'bg-yellow-300':
+                  employee?.attendanceData?.[formatDateISO(date)] === 'half-day',
+                'bg-red-300':
+                  employee?.attendanceData?.[formatDateISO(date)] === 'full-day',
+                'bg-blue-300':
+                  employee?.attendanceData?.[formatDateISO(date)] === 'paid-leave',
+                'bg-white hover:bg-gray-100':
+                  !employee?.attendanceData?.[formatDateISO(date)],
+                'border-2 border-indigo-600':
+                  date.toDateString() === today.toDateString(),
+                'disabled-day':
+                  date.getDay() === 0 || date > today
+              }" @click="date.getDay() !== 0 && date <= today && toggleAttendance(date)" :title="getTooltip(date)"
               aria-label="Toggle attendance status">
               {{ date.getDate() }}
             </button>
@@ -175,8 +155,8 @@ function calculateat(attendanceData) {
         </div>
 
         <div class="mt-6 text-center">
-          <router-link :to="'/payroll'" @click="payNow"
-            class="bg-green-600 text-white px-6 py-3 rounded shadow-lg hover:bg-green-700 focus:outline-none">
+          <router-link :to="'/payroll'"
+            class="bg-blue-600 text-white px-6 py-3 rounded shadow-lg hover:bg-blue-700 focus:outline-none">
             Pay Now
           </router-link>
         </div>
@@ -255,14 +235,13 @@ button[title]:hover::after {
   border-radius: 4px;
 }
 
-
-.disabled-sunday {
+.disabled-day {
   background-color: #f0f0f0 !important;
   color: #aaa;
   cursor: not-allowed;
 }
 
-.disabled-sunday:hover {
+.disabled-day:hover {
   background-color: #f0f0f0 !important;
 }
 </style>
