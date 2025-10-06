@@ -4,79 +4,278 @@ import SideBar from "../components/SideBar.vue";
 import { employeeStore } from "../stores/store";
 import { RouterLink } from "vue-router";
 
-import DxDataGrid from "devextreme-vue/data-grid";
-import { DxColumn, DxEditing, DxButton } from "devextreme-vue/data-grid";
-import "devextreme/dist/css/dx.light.css";
-
 const store = employeeStore();
-const dataSource = ref(store.employees);
 
-function onRowInserted(e) {
-  store.addUser(e.data);
+// Local states for handling add/edit forms
+const newUser = ref({
+  name: "",
+  email: "",
+  position: "",
+  phone: "",
+  department: "",
+  salary: 0,
+});
+
+const editingId = ref(null);
+const editingUser = ref(null);
+
+// Add new employee handler
+function addUser() {
+  if (!newUser.value.name.trim()) {
+    alert("Name is required");
+    return;
+  }
+  store.addUser(newUser.value);
+  newUser.value = {
+    name: "",
+    email: "",
+    position: "",
+    phone: "",
+    department: "",
+    salary: 0,
+  };
 }
 
-function onRowUpdated(e) {
-  store.updateUser(e.data);
+// Start editing an employee
+function editUser(emp) {
+  editingId.value = emp.id;
+  editingUser.value = { ...emp }; // shallow copy
 }
 
-function onRowRemoved(e) {
-  store.removeUser(e.data.id);
+// Save edited employee
+function saveUser() {
+  if (!editingUser.value.name.trim()) {
+    alert("Name is required");
+    return;
+  }
+  store.updateEmployee(editingId.value, editingUser.value);
+  editingId.value = null;
+  editingUser.value = null;
+}
+
+// Cancel editing
+function cancelEdit() {
+  editingId.value = null;
+  editingUser.value = null;
+}
+
+// Delete employee
+function deleteUser(id) {
+  if (confirm("Are you sure to delete this employee?")) {
+    store.removeUser(id);
+  }
 }
 </script>
 
 <template>
-  <div class="flex">
-    <div class="w-64 bg-white border-r border-indigo-100 left-0">
-      <SideBar class="w-64" />
-    </div>
-    <div class="flex min-h-screen bg-gradient-to-br  text-gray-800 font-sans">
+  <div
+    class="flex min-h-screen bg-gradient-to-br from-indigo-50 to-white text-gray-800 font-sans"
+  >
+    <aside class="w-64 bg-white border-r border-indigo-100 shadow-md">
+      <SideBar />
+    </aside>
 
+    <main class="flex-grow p-10 space-y-8">
+      <header>
+        <h1
+          class="text-5xl font-bold text-indigo-900 drop-shadow-lg tracking-tight"
+        >
+          Employee CRM
+        </h1>
+        <p class="text-lg text-indigo-500 mt-2">
+          Manage employee records professionally and efficiently.
+        </p>
+      </header>
 
-      <main class="flex-grow p-10 space-y-8">
-        <header>
-          <h1 class="text-5xl font-bold text-indigo-900 drop-shadow-lg tracking-tight">
-            Employee CRM
-          </h1>
-          <p class="text-lg text-indigo-500 mt-2">
-            Manage employee records professionally and efficiently.
-          </p>
-        </header>
+      <section
+        class="bg-white rounded-2xl shadow-xl border border-indigo-200 p-6 overflow-auto"
+      >
+        <h2 class="text-2xl font-semibold text-indigo-800 mb-4">
+          Employee List
+        </h2>
 
-        <section class="bg-white shadow-xl border border-indigo-200 p-6 overflow-hidden">
-          <h2 class="text-2xl font-semibold text-indigo-800 mb-4">
-            Employee List
-          </h2>
+        <!-- Add New Employee Form -->
+        <form @submit.prevent="addUser" class="mb-6 grid grid-cols-6 gap-4">
+          <input
+            v-model="newUser.name"
+            placeholder="Name"
+            required
+            class="border rounded p-2 col-span-1"
+          />
+          <input
+            v-model="newUser.email"
+            placeholder="Email"
+            class="border rounded p-2 col-span-1"
+          />
+          <input
+            v-model="newUser.position"
+            placeholder="Position"
+            class="border rounded p-2 col-span-1"
+          />
+          <input
+            v-model="newUser.phone"
+            placeholder="Phone"
+            class="border rounded p-2 col-span-1"
+          />
+          <input
+            v-model="newUser.department"
+            placeholder="Department"
+            class="border rounded p-2 col-span-1"
+          />
+          <input
+            v-model.number="newUser.salary"
+            type="number"
+            placeholder="Salary"
+            class="border rounded p-2 col-span-1"
+          />
+          <button
+            type="submit"
+            class="bg-indigo-600 text-white rounded px-4 py-2 col-span-1 hover:bg-indigo-700"
+          >
+            Add Employee
+          </button>
+        </form>
 
-          <div class="w-full h-[600px]">
-            <DxDataGrid :data-source="dataSource" show-borders :column-auto-width="true" :allow-column-resizing="true"
-              :word-wrap-enabled="true" row-alternation-enabled class="rounded-xl overflow-hidden" height="600"
-              @row-inserted="onRowInserted" @row-updated="onRowUpdated" @row-removed="onRowRemoved">
-              <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true" />
+        <!-- Employee Table -->
+        <table class="w-full table-auto border-collapse border border-gray-300">
+          <thead>
+            <tr class="bg-indigo-100">
+              <th class="border border-gray-300 px-3 py-2">ID</th>
+              <th class="border border-gray-300 px-3 py-2">Name</th>
+              <th class="border border-gray-300 px-3 py-2">Email</th>
+              <th class="border border-gray-300 px-3 py-2">Position</th>
+              <th class="border border-gray-300 px-3 py-2">Phone</th>
+              <th class="border border-gray-300 px-3 py-2">Department</th>
+              <th class="border border-gray-300 px-3 py-2">Salary</th>
+              <th class="border border-gray-300 px-3 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="emp in store.employees"
+              :key="emp.id"
+              class="hover:bg-indigo-50"
+            >
+              <td class="border border-gray-300 px-3 py-2">{{ emp.id }}</td>
 
-              <DxColumn data-field="id" caption="ID" width="70" :allow-editing="false" />
+              <td
+                class="border border-gray-300 px-3 py-2"
+                v-if="editingId !== emp.id"
+              >
+                {{ emp.name }}
+              </td>
+              <td class="border border-gray-300 px-3 py-2" v-else>
+                <input
+                  v-model="editingUser.name"
+                  class="border rounded p-1 w-full"
+                />
+              </td>
 
-              <DxColumn data-field="name" caption="Name">
-                <template #cellTemplate="{ data }">
-                  <RouterLink :to="`/employee/${data.id}`" class="text-indigo-600 hover:underline font-medium">
-                    {{ data.name }}
-                  </RouterLink>
+              <td
+                class="border border-gray-300 px-3 py-2"
+                v-if="editingId !== emp.id"
+              >
+                {{ emp.email }}
+              </td>
+              <td class="border border-gray-300 px-3 py-2" v-else>
+                <input
+                  v-model="editingUser.email"
+                  class="border rounded p-1 w-full"
+                />
+              </td>
+
+              <td
+                class="border border-gray-300 px-3 py-2"
+                v-if="editingId !== emp.id"
+              >
+                {{ emp.position }}
+              </td>
+              <td class="border border-gray-300 px-3 py-2" v-else>
+                <input
+                  v-model="editingUser.position"
+                  class="border rounded p-1 w-full"
+                />
+              </td>
+
+              <td
+                class="border border-gray-300 px-3 py-2"
+                v-if="editingId !== emp.id"
+              >
+                {{ emp.phone }}
+              </td>
+              <td class="border border-gray-300 px-3 py-2" v-else>
+                <input
+                  v-model="editingUser.phone"
+                  class="border rounded p-1 w-full"
+                />
+              </td>
+
+              <td
+                class="border border-gray-300 px-3 py-2"
+                v-if="editingId !== emp.id"
+              >
+                {{ emp.department }}
+              </td>
+              <td class="border border-gray-300 px-3 py-2" v-else>
+                <input
+                  v-model="editingUser.department"
+                  class="border rounded p-1 w-full"
+                />
+              </td>
+
+              <td
+                class="border border-gray-300 px-3 py-2"
+                v-if="editingId !== emp.id"
+              >
+                {{ emp.salary }}
+              </td>
+              <td class="border border-gray-300 px-3 py-2" v-else>
+                <input
+                  type="number"
+                  v-model.number="editingUser.salary"
+                  class="border rounded p-1 w-full"
+                />
+              </td>
+
+              <td class="border border-gray-300 px-3 py-2 whitespace-nowrap">
+                <template v-if="editingId === emp.id">
+                  <button
+                    @click="saveUser"
+                    class="text-green-600 hover:text-green-900 mr-2 font-semibold"
+                    title="Save"
+                  >
+                    Save
+                  </button>
+                  <button
+                    @click="cancelEdit"
+                    class="text-red-600 hover:text-red-900 font-semibold"
+                    title="Cancel"
+                  >
+                    Cancel
+                  </button>
                 </template>
-              </DxColumn>
 
-              <DxColumn data-field="email" caption="Email" />
-              <DxColumn data-field="position" caption="Position" />
-              <DxColumn data-field="phone" caption="Phone" />
-              <DxColumn data-field="department" caption="Department" />
-              <DxColumn data-field="salary" caption="Salary" format="currency" editor-type="dxNumberBox" />
-
-              <DxColumn type="buttons" width="120">
-                <DxButton name="edit" />
-                <DxButton name="delete" />
-              </DxColumn>
-            </DxDataGrid>
-          </div>
-        </section>
-      </main>
-    </div>
+                <template v-else>
+                  <button
+                    @click="editUser(emp)"
+                    class="text-blue-600 hover:text-blue-900 mr-2 font-semibold"
+                    title="Edit"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    @click="deleteUser(emp.id)"
+                    class="text-red-600 hover:text-red-900 font-semibold"
+                    title="Delete"
+                  >
+                    Delete
+                  </button>
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
   </div>
 </template>
