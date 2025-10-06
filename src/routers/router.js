@@ -15,13 +15,7 @@ const routes = [
   { path: "/leaves", name: "leaves", component: Leaves },
   { path: "/payroll", name: "Payroll", component: Payrolls },
   { path: "/holidays", name: "Holiday", component: Holidays },
-
-  {
-    path: "/employee/:id",
-    name: "EmployeeCalendar",
-    component: Calendar,
-    props: true,
-  },
+  { path: "/employee/:id", name: "EmployeeCalendar" ,component: Calendar, props: true },
 ];
 
 export const router = createRouter({

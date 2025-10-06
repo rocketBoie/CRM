@@ -1,11 +1,11 @@
 import { defineStore } from "pinia";
-import employeesData from "../utils/emp"; // Assuming this is the initial data
+import employeesData from "../utils/emp"; 
 
 export const employeeStore = defineStore("employee", {
   state: () => ({
     employees: employeesData.map((emp) => ({
       ...emp,
-      attendanceData: emp.attendanceData || {}, // e.g. { "2025-10-06": "present" }
+      attendanceData: emp.attendanceData || {}, 
     })),
     len: employeesData.length,
   }),
@@ -51,13 +51,6 @@ export const employeeStore = defineStore("employee", {
       }
     },
 
-    /**
-     * Update attendance status for a specific employee on a specific date
-     * @param {Number} id - employee id
-     * @param {String} dateStr - date string in "YYYY-MM-DD" format
-     * @param {String|null} status - attendance status: "present", "half-day", "full-day", "paid-leave" or null (absent)
-     */
-    // In your Pinia store actions:
     updateAttendance(id, dateStr, status) {
       const emp = this.employees.find((e) => e.id === id);
       if (emp) {
@@ -66,15 +59,11 @@ export const employeeStore = defineStore("employee", {
         }
 
         emp.attendanceData[dateStr] = status;
-
-        // Recalculate summary counts for this employee
-        // Reset counts
         emp.totalPresent = 0;
         emp.halfDayLeave = 0;
         emp.fullDayLeave = 0;
         emp.paidLeave = 0;
 
-        // Count attendance statuses
         for (const key in emp.attendanceData) {
           switch (emp.attendanceData[key]) {
             case "present":
@@ -89,17 +78,12 @@ export const employeeStore = defineStore("employee", {
             case "paid-leave":
               emp.paidLeave += 1;
               break;
-            // null or absent do nothing
           }
         }
       }
     },
 
-    /**
-     * Recalculate totalPresent, halfDayLeave, fullDayLeave, paidLeave from attendanceData
-     */
     recalculateSummary(emp) {
-      // Reset counts
       emp.totalPresent = 0;
       emp.halfDayLeave = 0;
       emp.fullDayLeave = 0;
@@ -125,11 +109,6 @@ export const employeeStore = defineStore("employee", {
       }
     },
 
-    // Your old updateAttendanceStatus can be removed or repurposed if needed
-
-    updateAttendanceStatus(id, status) {
-      // deprecated or for legacy support
-    },
 
     updateLeaveCount(id, leaveType, count) {
       const emp = this.employees.find((e) => e.id === id);

@@ -53,14 +53,6 @@ const menuItems = [
            </svg>`,
   },
   {
-    name: "Leaves",
-    label: "Leaves",
-    link: "/leaves",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-           </svg>`,
-  },
-  {
     name: "Payroll",
     label: "Payroll",
     link: "/payroll",
@@ -68,6 +60,15 @@ const menuItems = [
              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3v4m0-10v-2m0 2h6m-6 0H6" />
            </svg>`,
   },
+  {
+    name: "Leaves",
+    label: "Leaves",
+    link: "/leaves",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+           </svg>`,
+  },
+  
   {
     name: "Holidays",
     label: "Holidays",

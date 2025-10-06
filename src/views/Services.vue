@@ -29,9 +29,7 @@
           <h2 class="text-xl font-semibold mb-4 text-textdark">
             📅 Leave Calendar
           </h2>
-          <div
-            class="h-64 bg-graylight rounded-lg flex items-center justify-center text-gray-500"
-          >
+          <div class="h-64 bg-graylight rounded-lg flex items-center justify-center text-gray-500">
             Calendar
           </div>
         </div>
