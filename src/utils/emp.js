@@ -12,6 +12,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 75000,  
   },
   {
     id: 2,
@@ -26,6 +27,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 48000, 
   },
   {
     id: 3,
@@ -40,6 +42,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 55000,  
   },
   {
     id: 4,
@@ -54,6 +57,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 90000,  
   },
   {
     id: 5,
@@ -68,6 +72,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 85000,  
   },
   {
     id: 6,
@@ -82,6 +87,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 0,  
   },
   {
     id: 7,
@@ -96,6 +102,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 60000, 
   },
   {
     id: 8,
@@ -110,6 +117,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 65000,  
   },
   {
     id: 9,
@@ -124,6 +132,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 72000,  
   },
   {
     id: 10,
@@ -138,6 +147,7 @@ const employees = [
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
+    paySalary: 0,  
   },
 ];
 

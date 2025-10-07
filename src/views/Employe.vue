@@ -78,7 +78,7 @@ const filteredEmployees = computed(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-gradient-to-br from-indigo-50 to-white text-gray-800 font-sans">
+  <div class="flex min-h-screen  text-gray-800 font-sans">
     <aside class="w-64 bg-white border-r border-indigo-100 shadow-md">
       <SideBar />
     </aside>
@@ -88,9 +88,6 @@ const filteredEmployees = computed(() => {
         <h1 class="text-5xl font-bold text-indigo-900 drop-shadow-lg tracking-tight">
           Employee CRM
         </h1>
-        <p class="text-lg text-indigo-500 mt-2">
-          Manage employee records professionally and efficiently.
-        </p>
       </header>
 
       <section class="bg-white border border-indigo-200 p-6 overflow-auto">
