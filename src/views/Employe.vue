@@ -14,23 +14,18 @@ import DxDataGrid, {
 
 const store = employeeStore();
 
-// Create a reactive copy of employees for the grid dataSource
 const employeesForGrid = computed(() => {
-  // Return a shallow copy of employees array to prevent DevExtreme from mutating Pinia store data directly
   return store.employees.map((emp) => ({ ...emp }));
 });
 
-// Handle row inserted: manually add user to store
 function onRowInserted(e) {
   store.addUser(e.data);
 }
 
-// Handle row updated: update user in store
 function onRowUpdated(e) {
   store.updateUser(e.key, e.data);
 }
 
-// Handle row removed: remove user from store
 function onRowRemoved(e) {
   store.removeUser(e.key);
 }
@@ -58,7 +53,6 @@ function onRowRemoved(e) {
           Employee List
         </h2>
 
-        <!-- DevExtreme DataGrid -->
         <DxDataGrid
           :data-source="employeesForGrid"
           :show-borders="true"
@@ -109,7 +103,3 @@ function onRowRemoved(e) {
     </main>
   </div>
 </template>
-
-<style scoped>
-/* Add any additional styles if you want */
-</style>
