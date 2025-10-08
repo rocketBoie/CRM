@@ -70,7 +70,8 @@ function getAttendancePercentage(stats) {
     selectedMonth.value
   ).length;
   const presentDays = stats.totalPresent + stats.halfDayLeave * 0.5;
-  return `${((presentDays / workingDays) * 100).toFixed(1)}%`;
+  const percentage = (presentDays / workingDays) * 100;
+  return `${percentage.toFixed(1)}%`;
 }
 
 function handleRowClick(e) {
@@ -81,23 +82,58 @@ function handleRowClick(e) {
 }
 
 function calculateMonthlySalary(emp, stats) {
-  const totalWorkingDays = getDaysInMonth(
+  const totalDaysInMonth = getDaysInMonth(
     selectedYear.value,
     selectedMonth.value
   ).length;
-  const dailySalary = emp.salary / totalWorkingDays;
-  if (totalWorkingDays === 0) return "0.00";
+  if (totalDaysInMonth === 0) return "0.00";
 
-  let totalSalary = 0;
-  totalSalary += stats.totalPresent * dailySalary;
-  totalSalary += stats.halfDayLeave * (dailySalary / 2);
-  totalSalary += stats.fullDayLeave * dailySalary;
-  totalSalary += stats.paidLeave * dailySalary;
-  totalSalary += stats.offDays * dailySalary;
+  const dailySalary = emp.salary / totalDaysInMonth;
+  let totalPaidDays = 0;
 
-  const daysInMonth = getDaysInMonth(selectedYear.value, selectedMonth.value);
-  const sundayCount = daysInMonth.filter((date) => date.getDay() === 0).length;
-  totalSalary += sundayCount * dailySalary;
+  // 1. Paid Days based on attendance status:
+  // Present: 1 day
+  // Half-Day: 0.5 day
+  // Full-Day Leave: 1 day (Assuming paid)
+  // Paid Leave: 1 day
+  totalPaidDays += stats.totalPresent;
+  totalPaidDays += stats.halfDayLeave * 0.5;
+  totalPaidDays += stats.fullDayLeave;
+  totalPaidDays += stats.paidLeave;
+
+  // 2. Add Off Days/Sundays. We must be careful not to double count.
+  // The 'off-day' status in stats includes Sundays marked by markSundaysAndOffDays
+  // and any other custom off days. To correct the double-counting issue in the
+  // original logic, we should only count the days that are explicitly marked as
+  // 'off-day' in the attendance *if* they are not already covered in the above counts.
+
+  // The most robust way is to calculate salary based on *all* paid days:
+  // Paid = Present + 0.5 * HalfDay + FullDayLeave + PaidLeave + OffDay (incl. Sundays)
+
+  // Recalculating based on the assumption that ALL total days are potentially working
+  // days and the salary is paid unless it's an unpaid absence (e.g., absent, unpaid-leave).
+  // Given the original logic, it seems `fullDayLeave`, `paidLeave`, and `offDays` are all paid,
+  // and the original salary calculation explicitly added Sundays, even if they were offDays.
+
+  // Improved Logic (avoids double-counting Sundays if they are already in stats.offDays):
+  // Let's count *only* the days that contribute to the monthly salary.
+  let paidWorkingDays = stats.totalPresent + stats.halfDayLeave * 0.5;
+  paidWorkingDays += stats.fullDayLeave; // Assuming full-day leave is paid
+  paidWorkingDays += stats.paidLeave; // Paid leave is paid
+
+  // Add all off-days *from the stats* (which includes Sundays marked by the store)
+  paidWorkingDays += stats.offDays;
+
+  // ⚠️ The original logic was:
+  // totalSalary += stats.offDays * dailySalary;
+  // const sundayCount = daysInMonth.filter((date) => date.getDay() === 0).length;
+  // totalSalary += sundayCount * dailySalary;
+  // This is where the double counting occurred, as store.markSundaysAndOffDays
+  // ensures Sundays are marked as 'off-day' in the attendance data, thus being
+  // included in stats.offDays.
+
+  // The correct calculation is just the sum of all paid days:
+  const totalSalary = paidWorkingDays * dailySalary;
 
   return totalSalary.toFixed(2);
 }
@@ -126,9 +162,11 @@ const totalOffDays = computed(() => {
   });
   const daysInMonth = getDaysInMonth(selectedYear.value, selectedMonth.value);
   const sundayCount = daysInMonth.filter((date) => date.getDay() === 0).length;
-  totalOff += sundayCount;
-
-  return totalOff;
+  // Note: This totalOffDays is still potentially misleading if counted across all employees
+  // as each employee might have a different set of 'off-days' or the store marks them
+  // globally. Since the template doesn't use this, and the salary logic is fixed, we
+  // will simplify it to just count the Sundays, as off-days are employee-specific.
+  return sundayCount; // A safer, more consistent number for a general counter
 });
 
 watchEffect(() => {
@@ -137,23 +175,23 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-gray-100">
+  <div class="flex min-h-screen bg-gray-50">
     <div class="w-64 border-r border-gray-200 bg-white shadow-md">
       <SideBar />
     </div>
 
     <div class="flex-grow p-8">
       <main>
-        <h1 class="text-4xl font-extrabold mb-6 text-gray-800">
+        <h1 class="text-4xl font-extrabold mb-8 text-gray-800">
           Employee Attendance Summary
         </h1>
 
-        <div class="mb-6 flex items-center">
-          <label class="font-medium mr-4 text-gray-700">Select Month:</label>
+        <div class="mb-6">
+          <label class="font-medium mr-2 text-gray-700">Select Month:</label>
           <input
             type="month"
             v-model="monthYear"
-            class="border border-gray-300 px-4 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -188,15 +226,17 @@ watchEffect(() => {
                 <DxColumn
                   data-field="id"
                   caption="ID"
-                  :width="80"
+                  :width="70"
                   alignment="left"
                 />
+
                 <DxColumn
                   data-field="name"
                   caption="Name"
                   alignment="left"
                   css-class="cursor-pointer font-semibold text-blue-800"
                 />
+
                 <DxColumn
                   data-field="stats.totalPresent"
                   caption="Present"
@@ -217,11 +257,13 @@ watchEffect(() => {
                   caption="Paid Leave"
                   :width="100"
                 />
+
                 <DxColumn
                   data-field="workingDays"
                   caption="Total Days"
                   :width="120"
                 />
+
                 <DxColumn
                   data-field="attendancePercentage"
                   caption="Attendance %"
@@ -229,6 +271,7 @@ watchEffect(() => {
                   cell-template="percentageTemplate"
                   alignment="center"
                 />
+
                 <DxColumn
                   data-field="paySalary"
                   caption="Salary"
