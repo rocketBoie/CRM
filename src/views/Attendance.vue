@@ -68,7 +68,7 @@ function getAttendancePercentage(stats) {
   const workingDays = getDaysInMonth(
     selectedYear.value,
     selectedMonth.value
-  ).filter((date) => date.getDay() !== 0).length; // Exclude Sundays from working days
+  ).length;
   const presentDays = stats.totalPresent + stats.halfDayLeave * 0.5;
   return `${((presentDays / workingDays) * 100).toFixed(1)}%`;
 }
@@ -84,28 +84,20 @@ function calculateMonthlySalary(emp, stats) {
   const totalWorkingDays = getDaysInMonth(
     selectedYear.value,
     selectedMonth.value
-  ).filter((date) => date.getDay() !== 0).length;
-
+  ).length;
   const dailySalary = emp.salary / totalWorkingDays;
-
   if (totalWorkingDays === 0) return "0.00";
 
   let totalSalary = 0;
-
   totalSalary += stats.totalPresent * dailySalary;
-
   totalSalary += stats.halfDayLeave * (dailySalary / 2);
-
   totalSalary += stats.fullDayLeave * dailySalary;
-
   totalSalary += stats.paidLeave * dailySalary;
-
   totalSalary += stats.offDays * dailySalary;
 
   const daysInMonth = getDaysInMonth(selectedYear.value, selectedMonth.value);
   const sundayCount = daysInMonth.filter((date) => date.getDay() === 0).length;
-
-  totalSalary -= sundayCount * dailySalary;
+  totalSalary += sundayCount * dailySalary;
 
   return totalSalary.toFixed(2);
 }
@@ -119,10 +111,8 @@ const employeeStats = computed(() => {
       ...emp,
       stats,
       attendancePercentage: getAttendancePercentage(stats),
-      workingDays: getDaysInMonth(
-        selectedYear.value,
-        selectedMonth.value
-      ).filter((date) => date.getDay() !== 0).length, // Exclude Sundays
+      workingDays: getDaysInMonth(selectedYear.value, selectedMonth.value)
+        .length,
       paySalary: finalSalary,
     };
   });
