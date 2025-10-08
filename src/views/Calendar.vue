@@ -86,9 +86,9 @@ function getTooltip(date) {
 
   return status
     ? status
-      .split("-")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ")
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ")
     : "Absent";
 }
 
@@ -96,7 +96,6 @@ function goBack() {
   router.go(-1);
 }
 </script>
-
 
 <template>
   <div class="flex min-h-screen bg-gradient-to-br from-indigo-50 to-white">
@@ -107,9 +106,7 @@ function goBack() {
     <div class="flex-grow p-8">
       <div class="bg-white p-6 rounded-lg shadow-lg">
         <h2 class="text-3xl font-semibold text-indigo-900 mb-6" v-if="employee">
-          <button @click="goBack" class="cursor-pointer">
-            &larr;
-          </button>
+          <button @click="goBack" class="cursor-pointer">&larr;</button>
           Attendance Calendar for {{ employee.name }}
         </h2>
         <h2 v-else class="text-3xl font-semibold text-gray-500 mb-6">
@@ -118,56 +115,112 @@ function goBack() {
 
         <label class="block mb-6 text-gray-700 font-medium">
           Select Month:
-          <input type="month" v-model="monthYear"
-            class="ml-2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500" />
+          <input
+            type="month"
+            v-model="monthYear"
+            class="ml-2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+          />
         </label>
 
         <div class="grid grid-cols-7 gap-2 text-center mb-4">
-          <div class="font-semibold text-gray-800" v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']"
-            :key="day">
+          <div
+            class="font-semibold text-gray-800"
+            v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']"
+            :key="day"
+          >
             {{ day }}
           </div>
         </div>
 
         <div class="grid grid-cols-7 gap-2 text-center">
-          <template v-for="n in new Date(selectedYear, selectedMonth, 1).getDay()" :key="'empty-' + n">
+          <template
+            v-for="n in new Date(selectedYear, selectedMonth, 1).getDay()"
+            :key="'empty-' + n"
+          >
             <div></div>
           </template>
 
           <template v-for="date in daysInMonth" :key="formatDateISO(date)">
-            <button type="button" :disabled="date.getDay() === 0 || date > today"
-              class="p-4 rounded-lg cursor-pointer select-none transition-all duration-300 ease-in-out" :class="{
-                'bg-green-300': employee?.attendanceData?.[formatDateISO(date)] === 'present',
-                'bg-yellow-300': employee?.attendanceData?.[formatDateISO(date)] === 'half-day',
-                'bg-red-300': employee?.attendanceData?.[formatDateISO(date)] === 'full-day',
-                'bg-blue-300': employee?.attendanceData?.[formatDateISO(date)] === 'paid-leave',
+            <button
+              type="button"
+              :disabled="date.getDay() === 0 || date > today"
+              class="p-4 rounded-lg cursor-pointer select-none transition-all duration-300 ease-in-out"
+              :class="{
+                'bg-green-300':
+                  employee?.attendanceData?.[formatDateISO(date)] === 'present',
+                'bg-yellow-300':
+                  employee?.attendanceData?.[formatDateISO(date)] ===
+                  'half-day',
+                'bg-red-300':
+                  employee?.attendanceData?.[formatDateISO(date)] ===
+                  'full-day',
+                'bg-blue-300':
+                  employee?.attendanceData?.[formatDateISO(date)] ===
+                  'paid-leave',
                 'bg-gray-500': date.getDay() === 0,
-                'bg-white hover:bg-gray-500': !employee?.attendanceData?.[formatDateISO(date)] && date.getDay() !== 0,
-                'border-2 border-indigo-600': date.toDateString() === today.toDateString(),
-                'disabled-day': date.getDay() === 0 || date > today
-              }" @click="toggleAttendance(date)" :title="getTooltip(date)" aria-label="Toggle attendance status">
-
+                'bg-white hover:bg-gray-500':
+                  !employee?.attendanceData?.[formatDateISO(date)] &&
+                  date.getDay() !== 0,
+                'border-2 border-indigo-600':
+                  date.toDateString() === today.toDateString(),
+                'disabled-day': date.getDay() === 0 || date > today,
+              }"
+              @click="toggleAttendance(date)"
+              :title="getTooltip(date)"
+              aria-label="Toggle attendance status"
+            >
               <div class="text-lg font-semibold">
                 {{ date.getDate() }}
               </div>
 
               <div v-if="date <= today" class="text-xs mt-1">
                 <span v-if="date.getDay() === 0">Off Day</span>
-                <span v-else-if="employee?.attendanceData?.[formatDateISO(date)] === 'present'">Present</span>
-                <span v-else-if="employee?.attendanceData?.[formatDateISO(date)] === 'half-day'">Half-Day</span>
-                <span v-else-if="employee?.attendanceData?.[formatDateISO(date)] === 'full-day'">Full-Day Leave</span>
-                <span v-else-if="employee?.attendanceData?.[formatDateISO(date)] === 'paid-leave'">Paid Leave</span>
-                <span v-else-if="employee?.attendanceData?.[formatDateISO(date)] === 'off-day'">Off Day</span>
+                <span
+                  v-else-if="
+                    employee?.attendanceData?.[formatDateISO(date)] ===
+                    'present'
+                  "
+                  >Present</span
+                >
+                <span
+                  v-else-if="
+                    employee?.attendanceData?.[formatDateISO(date)] ===
+                    'half-day'
+                  "
+                  >Half-Day</span
+                >
+                <span
+                  v-else-if="
+                    employee?.attendanceData?.[formatDateISO(date)] ===
+                    'full-day'
+                  "
+                  >Full-Day Leave</span
+                >
+                <span
+                  v-else-if="
+                    employee?.attendanceData?.[formatDateISO(date)] ===
+                    'paid-leave'
+                  "
+                  >Paid Leave</span
+                >
+                <span
+                  v-else-if="
+                    employee?.attendanceData?.[formatDateISO(date)] ===
+                    'off-day'
+                  "
+                  >Off Day</span
+                >
                 <span v-else>Absent</span>
               </div>
             </button>
           </template>
-
         </div>
 
         <div class="mt-6 text-center">
-          <router-link :to="'/payroll'"
-            class="bg-blue-600 text-white px-6 py-3 rounded shadow-lg hover:bg-blue-700 focus:outline-none">
+          <router-link
+            :to="'/payroll'"
+            class="bg-blue-600 text-white px-6 py-3 rounded shadow-lg hover:bg-blue-700 focus:outline-none"
+          >
             Pay Now
           </router-link>
         </div>
