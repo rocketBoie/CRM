@@ -5,7 +5,7 @@ export const employeeStore = defineStore("employee", {
   state: () => ({
     employees: employeesData.map((emp) => ({
       ...emp,
-      id: Number(emp.id), 
+      id: Number(emp.id), // Make sure initial IDs are numbers
       attendanceData: emp.attendanceData || {},
       paySalary: 0,
       totalPresent: emp.totalPresent || 0,
@@ -20,16 +20,16 @@ export const employeeStore = defineStore("employee", {
 
   actions: {
     addUser(newUser) {
-   
+      // Filter numeric IDs only
       const numericIds = this.employees
         .map((e) => Number(e.id))
         .filter((id) => !isNaN(id));
 
-     
+      // Compute new ID as max + 1 or 1 if none
       const newId = numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1;
 
       this.employees.push({
-        id: newId, 
+        id: newId, // Always number
         name: newUser.name || "",
         email: newUser.email || "",
         position: newUser.position || "",
