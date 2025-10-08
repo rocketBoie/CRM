@@ -91,48 +91,17 @@ function calculateMonthlySalary(emp, stats) {
   const dailySalary = emp.salary / totalDaysInMonth;
   let totalPaidDays = 0;
 
-  // 1. Paid Days based on attendance status:
-  // Present: 1 day
-  // Half-Day: 0.5 day
-  // Full-Day Leave: 1 day (Assuming paid)
-  // Paid Leave: 1 day
   totalPaidDays += stats.totalPresent;
   totalPaidDays += stats.halfDayLeave * 0.5;
   totalPaidDays += stats.fullDayLeave;
   totalPaidDays += stats.paidLeave;
 
-  // 2. Add Off Days/Sundays. We must be careful not to double count.
-  // The 'off-day' status in stats includes Sundays marked by markSundaysAndOffDays
-  // and any other custom off days. To correct the double-counting issue in the
-  // original logic, we should only count the days that are explicitly marked as
-  // 'off-day' in the attendance *if* they are not already covered in the above counts.
-
-  // The most robust way is to calculate salary based on *all* paid days:
-  // Paid = Present + 0.5 * HalfDay + FullDayLeave + PaidLeave + OffDay (incl. Sundays)
-
-  // Recalculating based on the assumption that ALL total days are potentially working
-  // days and the salary is paid unless it's an unpaid absence (e.g., absent, unpaid-leave).
-  // Given the original logic, it seems `fullDayLeave`, `paidLeave`, and `offDays` are all paid,
-  // and the original salary calculation explicitly added Sundays, even if they were offDays.
-
-  // Improved Logic (avoids double-counting Sundays if they are already in stats.offDays):
-  // Let's count *only* the days that contribute to the monthly salary.
   let paidWorkingDays = stats.totalPresent + stats.halfDayLeave * 0.5;
-  paidWorkingDays += stats.fullDayLeave; // Assuming full-day leave is paid
-  paidWorkingDays += stats.paidLeave; // Paid leave is paid
+  paidWorkingDays += stats.fullDayLeave;
+  paidWorkingDays += stats.paidLeave;
 
-  // Add all off-days *from the stats* (which includes Sundays marked by the store)
   paidWorkingDays += stats.offDays;
 
-  // ⚠️ The original logic was:
-  // totalSalary += stats.offDays * dailySalary;
-  // const sundayCount = daysInMonth.filter((date) => date.getDay() === 0).length;
-  // totalSalary += sundayCount * dailySalary;
-  // This is where the double counting occurred, as store.markSundaysAndOffDays
-  // ensures Sundays are marked as 'off-day' in the attendance data, thus being
-  // included in stats.offDays.
-
-  // The correct calculation is just the sum of all paid days:
   const totalSalary = paidWorkingDays * dailySalary;
 
   return totalSalary.toFixed(2);
@@ -162,11 +131,7 @@ const totalOffDays = computed(() => {
   });
   const daysInMonth = getDaysInMonth(selectedYear.value, selectedMonth.value);
   const sundayCount = daysInMonth.filter((date) => date.getDay() === 0).length;
-  // Note: This totalOffDays is still potentially misleading if counted across all employees
-  // as each employee might have a different set of 'off-days' or the store marks them
-  // globally. Since the template doesn't use this, and the salary logic is fixed, we
-  // will simplify it to just count the Sundays, as off-days are employee-specific.
-  return sundayCount; // A safer, more consistent number for a general counter
+  return sundayCount;
 });
 
 watchEffect(() => {
