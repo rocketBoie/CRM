@@ -49,10 +49,24 @@ function onRowRemoved(e) {
           Employee List
         </h2>
 
-        <DxDataGrid :data-source="employeesForGrid" :show-borders="true" :row-alternation-enabled="true" key-expr="id"
-          @row-inserted="onRowInserted" @row-updated="onRowUpdated" @row-removed="onRowRemoved"
-          class="shadow-md rounded-lg" :search-expr="['name', 'email', 'position']">
-          <DxEditing mode="cell" :allow-updating="true" :allow-deleting="true" :allow-adding="true" />
+        <!-- DevExtreme DataGrid -->
+        <DxDataGrid
+          :data-source="employeesForGrid"
+          :show-borders="true"
+          :row-alternation-enabled="true"
+          key-expr="id"
+          @row-inserted="onRowInserted"
+          @row-updated="onRowUpdated"
+          @row-removed="onRowRemoved"
+          class="shadow-md rounded-lg"
+          :search-expr="['name', 'email', 'position']"
+        >
+          <DxEditing
+            mode="cell"
+            :allow-updating="true"
+            :allow-deleting="true"
+            :allow-adding="true"
+          />
 
           <DxSearchPanel :visible="true" :width="250" placeholder="Search employees..." />
           <DxFilterRow :visible="true" />
@@ -72,4 +86,6 @@ function onRowRemoved(e) {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+
+</style>
