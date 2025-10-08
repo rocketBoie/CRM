@@ -5,6 +5,7 @@ import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import "./style.css";
 import "vue-cal/dist/vuecal.css";
+import "devextreme/dist/css/dx.material.orange.light.css";
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
