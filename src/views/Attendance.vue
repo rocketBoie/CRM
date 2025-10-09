@@ -1,13 +1,19 @@
 <script setup>
 import { ref, computed, watchEffect } from "vue";
-import { useRouter } from "vue-router";
 import { employeeStore } from "../stores/store";
 import SideBar from "../components/SideBar.vue";
-import { DxDataGrid, DxColumn,DxPaging, DxSearchPanel, DxEditing} from "devextreme-vue/data-grid";
+import Calendar from "./Calendar.vue";
+import {
+  DxDataGrid,
+  DxColumn,
+  DxPaging,
+  DxSearchPanel,
+  DxEditing,
+  DxMasterDetail,
+} from "devextreme-vue/data-grid";
 import "devextreme/dist/css/dx.light.css";
 
 const store = employeeStore();
-const router = useRouter();
 
 const selectedMonth = ref(new Date().getMonth());
 const selectedYear = ref(new Date().getFullYear());
@@ -67,14 +73,6 @@ function getAttendancePercentage(stats) {
   const percentage = (presentDays / workingDays) * 100;
   return `${percentage.toFixed(1)}%`;
 }
-
-function handleRowClick(e) {
-  const emp = e.data;
-  if (emp && emp.id) {
-    router.push({ name: "EmployeeCalendar", params: { id: emp.id } });
-  }
-}
-
 function calculateMonthlySalary(emp, stats) {
   const totalDaysInMonth = getDaysInMonth(
     selectedYear.value,
@@ -82,16 +80,22 @@ function calculateMonthlySalary(emp, stats) {
   ).length;
   if (totalDaysInMonth === 0) return "0.00";
   const dailySalary = emp.salary / totalDaysInMonth;
-  let paidWorkingDays = stats.totalPresent + stats.halfDayLeave *  0.5 + stats.fullDayLeave + stats.paidLeave;
-  if (stats.totalPresent > 0 || stats.halfDayLeave > 0 || stats.fullDayLeave > 0 || stats.paidLeave > 0) {
+  let paidWorkingDays =
+    stats.totalPresent +
+    stats.halfDayLeave * 0.5 +
+    stats.fullDayLeave +
+    stats.paidLeave;
+  if (
+    stats.totalPresent > 0 ||
+    stats.halfDayLeave > 0 ||
+    stats.fullDayLeave > 0 ||
+    stats.paidLeave > 0
+  ) {
     paidWorkingDays += stats.offDays;
   }
-
   const totalSalary = paidWorkingDays * dailySalary;
-
   return totalSalary.toFixed(2);
 }
-
 const employeeStats = computed(() => {
   return store.employees.map((emp) => {
     const stats = calculateMonthlyStats(emp.attendanceData);
@@ -101,12 +105,12 @@ const employeeStats = computed(() => {
       ...emp,
       stats,
       attendancePercentage: getAttendancePercentage(stats),
-      workingDays: getDaysInMonth(selectedYear.value, selectedMonth.value).length,
+      workingDays: getDaysInMonth(selectedYear.value, selectedMonth.value)
+        .length,
       paySalary: finalSalary,
     };
   });
 });
-
 const totalOffDays = computed(() => {
   let totalOff = 0;
   store.employees.forEach((emp) => {
@@ -117,11 +121,9 @@ const totalOffDays = computed(() => {
   const sundayCount = daysInMonth.filter((date) => date.getDay() === 0).length;
   return sundayCount;
 });
-
 watchEffect(() => {
   store.markSundaysAndOffDays(selectedMonth.value, selectedYear.value);
 });
-
 </script>
 
 <template>
@@ -129,7 +131,6 @@ watchEffect(() => {
     <div class="w-64 border-r border-gray-200 bg-white shadow-md">
       <SideBar class="w-64" />
     </div>
-
     <div class="flex-grow p-8">
       <main>
         <h1 class="text-4xl font-extrabold mb-8 text-gray-800">
@@ -138,33 +139,115 @@ watchEffect(() => {
 
         <div class="mb-6">
           <label class="font-medium mr-2 text-gray-700">Select Month:</label>
-          <input type="month" v-model="monthYear"
-            class="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          <input
+            type="month"
+            v-model="monthYear"
+            class="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
-
-        <div v-if="store.employees.length === 0" class="text-gray-500 text-center py-10">
+        <div
+          v-if="store.employees.length === 0"
+          class="text-gray-500 text-center py-10"
+        >
           No employee data available.
         </div>
-
         <div v-else>
           <div class="overflow-x-auto">
-            <div class="min-w-full bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
-              <DxDataGrid :data-source="employeeStats" key-expr="id" :show-borders="true" :row-alternation-enabled="true" :hover-state-enabled="true" @row-click="handleRowClick">
-                <DxSearchPanel :visible="true" :width="280" placeholder="Search employee name or ID..." />
+            <div
+              class="min-w-full bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200"
+            >
+              <DxDataGrid
+                :data-source="employeeStats"
+                key-expr="id"
+                :show-borders="true"
+                :row-alternation-enabled="true"
+                :hover-state-enabled="true"
+              >
+                <DxSearchPanel
+                  :visible="true"
+                  :width="280"
+                  placeholder="Search employee name or ID..."
+                />
                 <DxPaging :page-size="10" />
-                <DxColumn data-field="id" caption="ID" :width="70" alignment="left" />
-                <DxColumn data-field="name" caption="Name" alignment="left" css-class="cursor-pointer font-semibold text-blue-800" />
-                <DxColumn data-field="stats.totalPresent" caption="Present" :width="100" alignment="center"/>
-                <DxColumn data-field="stats.halfDayLeave" caption="Half-Day" :width="100" alignment="center"/>
-                <DxColumn data-field="stats.fullDayLeave" caption="Full-Day" :width="100" alignment="center"/>
-                <DxColumn data-field="stats.paidLeave" caption="Paid Leave" :width="100" alignment="center"/>
-                <DxColumn data-field="workingDays" caption="Total Days" :width="120" alignment="center"/>
-                <DxColumn data-field="attendancePercentage" caption="Attendance %" :width="140" cell-template="percentageTemplate" alignment="center" />
+                <DxColumn
+                  data-field="id"
+                  caption="ID"
+                  :width="70"
+                  alignment="left"
+                />
+                <DxColumn
+                  data-field="name"
+                  caption="Name"
+                  alignment="left"
+                  css-class="font-semibold text-blue-800"
+                />
+                <DxColumn
+                  data-field="stats.totalPresent"
+                  caption="Present"
+                  :width="100"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="stats.halfDayLeave"
+                  caption="Half-Day"
+                  :width="100"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="stats.fullDayLeave"
+                  caption="Full-Day"
+                  :width="100"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="stats.paidLeave"
+                  caption="Paid Leave"
+                  :width="100"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="workingDays"
+                  caption="Total Days"
+                  :width="120"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="attendancePercentage"
+                  caption="Attendance %"
+                  :width="140"
+                  cell-template="percentageTemplate"
+                  alignment="center"
+                />
 
-                <DxColumn data-field="paySalary" caption="Salary" :width="120" format="currency" alignment="right" />
+                <DxColumn
+                  data-field="paySalary"
+                  caption="Salary"
+                  :width="120"
+                  format="currency"
+                  alignment="right"
+                />
 
                 <template #percentageTemplate="{ data }">
                   <span class="font-bold text-green-700">{{ data.value }}</span>
+                </template>
+
+                <DxMasterDetail
+                  :enabled="true"
+                  template="employeeCalendarDetail"
+                />
+
+                <template #employeeCalendarDetail="{ data: { data: emp } }">
+                  <div class="p-4 bg-gray-100 border-t border-gray-300">
+                    <h3 class="text-2xl font-bold mb-3 text-indigo-700">
+                      Attendance Calendar for {{ emp.name }} ({{ monthYear }})
+                    </h3>
+
+                    <Calendar
+                      :employee-id="emp.id"
+                      :initial-month="selectedMonth"
+                      :initial-year="selectedYear"
+                    />
+                  </div>
                 </template>
               </DxDataGrid>
             </div>

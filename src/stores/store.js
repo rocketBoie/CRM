@@ -27,7 +27,7 @@ export const employeeStore = defineStore("employee", {
       const newId = numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1;
 
       this.employees.push({
-        id: newId, 
+        id: newId,
         name: newUser.name || "",
         email: newUser.email || "",
         position: newUser.position || "",
