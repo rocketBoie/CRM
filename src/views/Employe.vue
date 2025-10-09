@@ -3,14 +3,8 @@ import { ref, computed } from "vue";
 import SideBar from "../components/SideBar.vue";
 import { employeeStore } from "../stores/store";
 
-import DxDataGrid, {
-  DxColumn,
-  DxEditing,
-  DxPaging,
-  DxSearchPanel,
-  DxFilterRow,
-  DxHeaderFilter,
-} from "devextreme-vue/data-grid";
+
+import DxDataGrid, { DxColumn, DxEditing, DxPaging, DxSearchPanel, DxFilterRow, DxHeaderFilter, DxRequiredRule, DxEmailRule, DxRangeRule} from "devextreme-vue/data-grid";
 
 const store = employeeStore();
 
@@ -44,48 +38,46 @@ function onRowRemoved(e) {
         </h1>
       </header>
 
-      <section class="bg-white border border-indigo-200 p-6 overflow-auto rounded-lg shadow-lg">
+      <section class="bg-white border border-indigo-200 p-6 overflow-auto shadow-lg">
         <h2 class="text-2xl font-semibold text-indigo-800 mb-4">
           Employee List
         </h2>
 
-        <!-- DevExtreme DataGrid -->
-        <DxDataGrid
-          :data-source="employeesForGrid"
-          :show-borders="true"
-          :row-alternation-enabled="true"
-          key-expr="id"
-          @row-inserted="onRowInserted"
-          @row-updated="onRowUpdated"
-          @row-removed="onRowRemoved"
-          class="shadow-md rounded-lg"
-          :search-expr="['name', 'email', 'position']"
-        >
-          <DxEditing
-            mode="cell"
-            :allow-updating="true"
-            :allow-deleting="true"
-            :allow-adding="true"
-          />
+        <DxDataGrid :data-source="employeesForGrid" :show-borders="true" :row-alternation-enabled="true" key-expr="id"
+          @row-inserted="onRowInserted" @row-updated="onRowUpdated" @row-removed="onRowRemoved" class="shadow-md"
+          :search-expr="['name', 'email', 'position']">
+          <DxEditing mode="cell" :allow-updating="true" :allow-deleting="true" :allow-adding="true" />
 
           <DxSearchPanel :visible="true" :width="250" placeholder="Search employees..." />
-          <DxFilterRow :visible="true" />
-          <DxHeaderFilter :visible="true" />
+          <!-- <DxFilterRow :visible="true" /> -->
+          <!-- <DxHeaderFilter :visible="true" /> -->
           <DxPaging :page-size="10" />
 
           <DxColumn data-field="id" caption="ID" :allow-editing="false" width="70" />
-          <DxColumn data-field="name" caption="Name" />
-          <DxColumn data-field="email" caption="Email" />
-          <DxColumn data-field="position" caption="Position" />
-          <DxColumn data-field="phone" caption="Phone" />
-          <DxColumn data-field="department" caption="Department" />
-          <DxColumn data-field="salary" caption="Salary" data-type="number" format="currency" width="120" />
+          <DxColumn data-field="name" caption="Name">
+            <DxRequiredRule message="Name is required" />
+          </DxColumn>
+          <DxColumn data-field="email" caption="Email">
+            <DxRequiredRule message="Email is required" />
+            <DxEmailRule message="Enter a valid email address" />
+          </DxColumn>
+          <DxColumn data-field="position" caption="Position">
+            <DxRequiredRule message="Position is required" />
+          </DxColumn>
+          <DxColumn data-field="phone" caption="Phone">
+            <DxRequiredRule message="Phone number is required" />
+          </DxColumn>
+          <DxColumn data-field="department" caption="Department">
+            <DxRequiredRule message="Department is required" />
+          </DxColumn>
+          <DxColumn data-field="salary" caption="Salary" data-type="number" format="currency" width="120">
+            <DxRequiredRule message="Salary is required" />
+            <DxRangeRule :min="15000" :max="100000" message="Salary must be between 15,000 and 100,000" />
+          </DxColumn>
         </DxDataGrid>
       </section>
     </main>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
