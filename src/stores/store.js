@@ -156,35 +156,38 @@ export const employeeStore = defineStore("employee", {
       return workingDays;
     },
 
-    // updateSalaries(month, year) {
-    //   this.employees.forEach((emp) => {
-    //     this.calculateSalary(emp, month, year);
-    //   });
-    // },
+    updateSalaries(month, year) {
+      this.employees.forEach((emp) => {
+        this.calculateSalary(emp, month, year);
+      });
+    },
 
-    // addOffDay(dateStr) {
-    //   if (!this.offDays.includes(dateStr)) {
-    //     this.offDays.push(dateStr);
-    //   }
-    // },
+    addOffDay(dateStr) {
+      if (!this.offDays.includes(dateStr)) {
+        this.offDays.push(dateStr);
+      }
+    },
 
-    // removeOffDay(dateStr) {
-    //   this.offDays = this.offDays.filter((date) => date !== dateStr);
-    // },
+    removeOffDay(dateStr) {
+      this.offDays = this.offDays.filter((date) => date !== dateStr);
+    },
 
     markSundaysAndOffDays(month, year) {
-      const date = new Date(year, month, 1);
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const days = new Date(year, month + 1, 0).getDate();
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        date.setDate(day);
-        const dateStr = this.formatDateISO(date);
-        if (date.getDay() === 0 || this.offDays.includes(dateStr)) {
-          this.employees.forEach((emp) => {
-            this.updateAttendance(emp.id, dateStr, "off-day", month, year);
-          });
+      this.employees.forEach((emp) => {
+        for (let day = 1; day <= days; day++) {
+          const date = new Date(year, month, day);
+          const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1)
+            .toString()
+            .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+
+          if (date.getDay() === 0) {
+            if (!emp.attendanceData) emp.attendanceData = {};
+            emp.attendanceData[dateStr] = "off-day";
+          }
         }
-      }
+      });
     },
 
     formatDateISO(date) {

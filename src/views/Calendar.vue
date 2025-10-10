@@ -145,6 +145,7 @@ function getTooltip(date) {
 
       <div class="grid grid-cols-7 gap-2 text-center">
         <template v-for="n in new Date(selectedYear, selectedMonth, 1).getDay()" :key="'empty-' + n">
+          <div></div>
         </template>
 
         <template v-for="date in daysInMonth" :key="formatDateISO(date)">
