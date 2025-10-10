@@ -129,31 +129,21 @@ watchEffect(() => {
 function onRowExpanded(e) {
   if (e.expanded) {
     nextTick(() => {
-      const gridRows = document.querySelectorAll(".dx-data-row");
-      let targetRow = null;
+      const visibleRows = e.component.getVisibleRows();
+      const rowIndex = visibleRows.findIndex(row => row.key === e.key);
 
-      for (let i = 0; i < gridRows.length; i++) {
-        const row = gridRows[i];
-        if (
-          row.getAttribute("aria-rowindex") ==
-          e.component.getRowIndexByKey(e.key) + 1
-        ) {
-          targetRow = row;
-          break;
+      if (rowIndex !== -1) {
+        const gridRows = document.querySelectorAll(".dx-data-row");
+        const targetRow = gridRows[rowIndex];
+
+        if (targetRow) {
+          targetRow.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-      }
-      if (!targetRow) {
-        targetRow = document.querySelector(
-          ".dx-data-row[aria-expanded='true']"
-        );
-      }
-
-      if (targetRow) {
-        targetRow.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
   }
 }
+
 </script>
 
 <template>

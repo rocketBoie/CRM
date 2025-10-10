@@ -71,8 +71,12 @@ const ATTENDANCE_STATUSES = [
 ];
 
 function formatDateISO(date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
+
 
 const daysInMonth = computed(() => {
   const date = new Date(selectedYear.value, selectedMonth.value, 1);
