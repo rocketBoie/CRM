@@ -96,19 +96,19 @@ export const employeeStore = defineStore("employee", {
       }
     },
 
-    updateLeaveCount(id, leaveType, count) {
-      const numericId = Number(id);
-      const emp = this.employees.find((e) => Number(e.id) === numericId);
-      if (!emp) return;
+    // updateLeaveCount(id, leaveType, count) {
+    //   const numericId = Number(id);
+    //   const emp = this.employees.find((e) => Number(e.id) === numericId);
+    //   if (!emp) return;
 
-      if (leaveType === "half") {
-        emp.halfDayLeave += count;
-      } else if (leaveType === "full") {
-        emp.fullDayLeave += count;
-      } else if (leaveType === "paid") {
-        emp.paidLeave += count;
-      }
-    },
+    //   if (leaveType === "half") {
+    //     emp.halfDayLeave += count;
+    //   } else if (leaveType === "full") {
+    //     emp.fullDayLeave += count;
+    //   } else if (leaveType === "paid") {
+    //     emp.paidLeave += count;
+    //   }
+    // },
 
     calculateSalary(emp, month, year) {
       const totalWorkingDays = this.getWorkingDaysInMonth(month, year);
@@ -156,21 +156,21 @@ export const employeeStore = defineStore("employee", {
       return workingDays;
     },
 
-    updateSalaries(month, year) {
-      this.employees.forEach((emp) => {
-        this.calculateSalary(emp, month, year);
-      });
-    },
+    // updateSalaries(month, year) {
+    //   this.employees.forEach((emp) => {
+    //     this.calculateSalary(emp, month, year);
+    //   });
+    // },
 
-    addOffDay(dateStr) {
-      if (!this.offDays.includes(dateStr)) {
-        this.offDays.push(dateStr);
-      }
-    },
+    // addOffDay(dateStr) {
+    //   if (!this.offDays.includes(dateStr)) {
+    //     this.offDays.push(dateStr);
+    //   }
+    // },
 
-    removeOffDay(dateStr) {
-      this.offDays = this.offDays.filter((date) => date !== dateStr);
-    },
+    // removeOffDay(dateStr) {
+    //   this.offDays = this.offDays.filter((date) => date !== dateStr);
+    // },
 
     markSundaysAndOffDays(month, year) {
       const date = new Date(year, month, 1);

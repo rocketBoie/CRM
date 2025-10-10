@@ -134,39 +134,21 @@ function getTooltip(date) {
     <div class="bg-white p-6 rounded-lg shadow-inner">
       <label class="block mb-6 text-gray-700 font-medium">
         Select Month:
-        <input
-          type="month"
-          v-model="monthYear"
-          class="ml-2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
-        />
+        <input type="month" v-model="monthYear" class="ml-2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"/>
       </label>
 
       <div class="grid grid-cols-7 gap-2 text-center mb-4">
-        <div
-          class="font-semibold text-gray-800"
-          v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']"
-          :key="day"
-        >
+        <div class="font-semibold text-gray-800" v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" key="day">
           {{ day }}
         </div>
       </div>
 
       <div class="grid grid-cols-7 gap-2 text-center">
-        <template
-          v-for="n in new Date(selectedYear, selectedMonth, 1).getDay()"
-          :key="'empty-' + n"
-        >
-          <div></div>
+        <template v-for="n in new Date(selectedYear, selectedMonth, 1).getDay()" :key="'empty-' + n">
         </template>
 
         <template v-for="date in daysInMonth" :key="formatDateISO(date)">
-          <button
-            type="button"
-            :disabled="date.getDay() === 0 || date > today"
-            @click="toggleAttendance(date)"
-            :title="getTooltip(date)"
-            aria-label="Toggle attendance status"
-            class="p-4 rounded-lg cursor-pointer select-none transition-all duration-300 ease-in-out h-16 flex flex-col justify-between items-center text-left"
+          <button type="button" :disabled="date.getDay() === 0 || date > today" @click="toggleAttendance(date)" :title="getTooltip(date)" aria-label="Toggle attendance status" class="p-4 rounded-lg cursor-pointer select-none transition-all duration-300 ease-in-out h-16 flex flex-col justify-between items-center text-left"
             :class="{
               'bg-green-300 hover:bg-green-400':
                 employee?.attendanceData?.[formatDateISO(date)] === 'present',
@@ -194,36 +176,12 @@ function getTooltip(date) {
               {{ date.getDate() }}
             </div>
 
-            <div
-              v-if="date <= today"
-              class="text-xs mt-1 w-full text-center font-medium"
-            >
+            <div v-if="date <= today" class="text-xs mt-1 w-full text-center font-medium">
               <span v-if="date.getDay() === 0">Off Day</span>
-              <span
-                v-else-if="
-                  employee?.attendanceData?.[formatDateISO(date)] === 'present'
-                "
-                >Present</span
-              >
-              <span
-                v-else-if="
-                  employee?.attendanceData?.[formatDateISO(date)] === 'half-day'
-                "
-                >Half-Day</span
-              >
-              <span
-                v-else-if="
-                  employee?.attendanceData?.[formatDateISO(date)] === 'full-day'
-                "
-                >Full-Day Leave</span
-              >
-              <span
-                v-else-if="
-                  employee?.attendanceData?.[formatDateISO(date)] ===
-                  'paid-leave'
-                "
-                >Paid Leave</span
-              >
+              <span v-else-if="employee?.attendanceData?.[formatDateISO(date)] === 'present'">Present</span>
+              <span v-else-if="employee?.attendanceData?.[formatDateISO(date)] === 'half-day'">Half-Day</span>
+              <span v-else-if="employee?.attendanceData?.[formatDateISO(date)] === 'full-day'">Full-Day Leave</span>
+              <span v-else-if="employee?.attendanceData?.[formatDateISO(date)] ==='paid-leave'">Paid Leave</span>
               <span v-else>Absent</span>
             </div>
             <div v-else class="text-xs mt-1 w-full text-center text-gray-400">
@@ -232,9 +190,7 @@ function getTooltip(date) {
           </button>
         </template>
       </div>
-      <div
-        class="mt-6 flex flex-wrap gap-4 text-sm justify-center p-3 border-t border-gray-200"
-      >
+      <div class="mt-6 flex flex-wrap gap-4 text-sm justify-center p-3 border-t border-gray-200">
         <div class="flex items-center space-x-1">
           <div class="w-4 h-4 bg-green-300 rounded"></div>
           <span>Present</span>

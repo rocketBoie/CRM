@@ -72,9 +72,9 @@ function onRowRemoved(e) {
           <DxColumn data-field="department" caption="Department">
             <DxRequiredRule message="Department is required" />
           </DxColumn>
-          <DxColumn data-field="salary" caption="Salary" data-type="number" format="currency" width="120">
+          <DxColumn data-field="salary" caption="Salary" data-type="number" format="currency" width="120" alignment="center">
             <DxRequiredRule message="Salary is required" />
-            <DxRangeRule :min="15000" :max="100000" message="Salary must be between 15,000 and 100,000" />
+            <DxRangeRule :min="15000" :max="5000000" message="Salary must be between 15,000 and 100,000" />
           </DxColumn>
         </DxDataGrid>
       </section>
