@@ -23,6 +23,7 @@ export const employeeStore = defineStore("employee", {
       const numericIds = this.employees
         .map((e) => Number(e.id))
         .filter((id) => !isNaN(id));
+
       const newId = numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1;
 
       this.employees.push({
@@ -91,6 +92,7 @@ export const employeeStore = defineStore("employee", {
 
       const shouldBeOffDay = (checkDate) => {
         const dateStr = this.formatDateISO(checkDate);
+        // Check if it's a Sunday or a manually added off-day
         return checkDate.getDay() === 0 || this.offDays.includes(dateStr);
       };
 
@@ -128,6 +130,7 @@ export const employeeStore = defineStore("employee", {
 
       const isNonWorkingDay = (checkDateStr) => {
         const status = emp.attendanceData[checkDateStr];
+
         return status === "off-day" || this.offDays.includes(checkDateStr);
       };
 
@@ -151,6 +154,7 @@ export const employeeStore = defineStore("employee", {
         }
       }
 
+      // --- Check Next Day ---
       const nextDate = new Date(currentDate);
       nextDate.setDate(currentDate.getDate() + 1);
       const nextDateStr = this.formatDateISO(nextDate);
@@ -193,6 +197,8 @@ export const employeeStore = defineStore("employee", {
           case "paid-leave":
             emp.paidLeave++;
             break;
+          default:
+            break;
         }
       }
     },
@@ -207,12 +213,10 @@ export const employeeStore = defineStore("employee", {
       const dailySalary = emp.salary / totalWorkingDays;
       let totalSalary = 0;
 
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (const [dateStr, status] of Object.entries(emp.attendanceData)) {
+        const date = new Date(dateStr);
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const dateStr = this.formatDateISO(date);
-        const status = emp.attendanceData[dateStr] || "off-day"; // Default if missing
+        if (date.getMonth() !== month || date.getFullYear() !== year) continue;
 
         switch (status) {
           case "present":
@@ -225,7 +229,6 @@ export const employeeStore = defineStore("employee", {
             break;
           case "full-day":
           case "absent":
-            // No salary
             break;
         }
       }
@@ -241,6 +244,7 @@ export const employeeStore = defineStore("employee", {
       for (let day = 1; day <= daysInMonth; day++) {
         date.setDate(day);
         const dayOfWeek = date.getDay();
+
         if (dayOfWeek !== 0 && dayOfWeek !== 6) {
           workingDays++;
         }
@@ -250,7 +254,6 @@ export const employeeStore = defineStore("employee", {
     },
 
     updateSalaries(month, year) {
-      this.markSundaysAndOffDays(month, year);
       this.employees.forEach((emp) => {
         this.calculateSalary(emp, month, year);
       });
@@ -267,22 +270,22 @@ export const employeeStore = defineStore("employee", {
     },
 
     markSundaysAndOffDays(month, year) {
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const days = new Date(year, month + 1, 0).getDate();
 
       this.employees.forEach((emp) => {
-        for (let day = 1; day <= daysInMonth; day++) {
+        for (let day = 1; day <= days; day++) {
           const date = new Date(year, month, day);
-          const dateStr = this.formatDateISO(date);
+          const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1)
+            .toString()
+            .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
 
-          if (date.getDay() === 0 || this.offDays.includes(dateStr)) {
+          if (date.getDay() === 0) {
             if (!emp.attendanceData) emp.attendanceData = {};
-            const currentStatus = emp.attendanceData[dateStr];
-
             if (
-              currentStatus !== "full-day" &&
-              currentStatus !== "half-day" &&
-              currentStatus !== "paid-leave" &&
-              currentStatus !== "absent"
+              emp.attendanceData[dateStr] !== "full-day" &&
+              emp.attendanceData[dateStr] !== "half-day" &&
+              emp.attendanceData[dateStr] !== "paid-leave" &&
+              emp.attendanceData[dateStr] !== "absent"
             ) {
               emp.attendanceData[dateStr] = "off-day";
             }
@@ -293,15 +296,6 @@ export const employeeStore = defineStore("employee", {
 
     formatDateISO(date) {
       return date.toISOString().slice(0, 10);
-    },
-
-    parseDateParts(dateStr) {
-      const date = new Date(dateStr);
-      return {
-        year: date.getFullYear(),
-        month: date.getMonth(),
-        day: date.getDate(),
-      };
     },
   },
 });
