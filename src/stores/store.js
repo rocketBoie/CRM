@@ -92,7 +92,6 @@ export const employeeStore = defineStore("employee", {
 
       const shouldBeOffDay = (checkDate) => {
         const dateStr = this.formatDateISO(checkDate);
-        // Check if it's a Sunday or a manually added off-day
         return checkDate.getDay() === 0 || this.offDays.includes(dateStr);
       };
 
@@ -154,7 +153,7 @@ export const employeeStore = defineStore("employee", {
         }
       }
 
-      // --- Check Next Day ---
+  
       const nextDate = new Date(currentDate);
       nextDate.setDate(currentDate.getDate() + 1);
       const nextDateStr = this.formatDateISO(nextDate);
