@@ -23,7 +23,6 @@ export const employeeStore = defineStore("employee", {
       const numericIds = this.employees
         .map((e) => Number(e.id))
         .filter((id) => !isNaN(id));
-
       const newId = numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1;
 
       this.employees.push({
@@ -66,113 +65,106 @@ export const employeeStore = defineStore("employee", {
       const oldStatus = emp.attendanceData[dateStr];
 
       this.reverseSandwichPolicy(emp, dateStr, oldStatus, status);
-
-      emp.attendanceData = emp.attendanceData || {};
       emp.attendanceData[dateStr] = status;
-
       this.applySandwichPolicy(emp, dateStr, status);
 
       this.recalculateSummary(emp);
       this.calculateSalary(emp, month, year);
     },
 
-    reverseSandwichPolicy(emp, dateStr, oldStatus, newStatus) {
-      const wasLeave =
-        oldStatus === "full-day" ||
-        oldStatus === "half-day" ||
-        oldStatus === "absent";
-      const isStillLeave =
-        newStatus === "full-day" ||
-        newStatus === "half-day" ||
-        newStatus === "absent";
+    applySandwichPolicy(emp, dateStr, newStatus) {
+      const isLeaveOrAbsent = ["full-day", "half-day", "absent"].includes(
+        newStatus
+      );
+      if (!isLeaveOrAbsent) return;
 
+      const checkAndConvertSandwich = (centerDate) => {
+        const prevDate = new Date(centerDate);
+        prevDate.setDate(centerDate.getDate() - 1);
+        const nextDate = new Date(centerDate);
+        nextDate.setDate(centerDate.getDate() + 1);
+
+        const prevDateStr = this.formatDateISO(prevDate);
+        const centerDateStr = this.formatDateISO(centerDate);
+        const nextDateStr = this.formatDateISO(nextDate);
+
+        const prevStatus = emp.attendanceData[prevDateStr];
+        const nextStatus = emp.attendanceData[nextDateStr];
+        const centerStatus = emp.attendanceData[centerDateStr];
+
+        const isPrevLeave = ["full-day", "half-day", "absent"].includes(
+          prevStatus
+        );
+        const isNextLeave = ["full-day", "half-day", "absent"].includes(
+          nextStatus
+        );
+
+        const isCenterOffDay =
+          centerStatus === "off-day" || this.offDays.includes(centerDateStr);
+
+        if (isPrevLeave && isNextLeave && isCenterOffDay) {
+          emp.attendanceData[centerDateStr] = "full-day";
+        }
+      };
+
+      const currentDate = new Date(dateStr);
+
+      const centerPrev = new Date(currentDate);
+      centerPrev.setDate(centerPrev.getDate() - 1);
+      checkAndConvertSandwich(centerPrev);
+
+      const centerNext = new Date(currentDate);
+      centerNext.setDate(centerNext.getDate() + 1);
+      checkAndConvertSandwich(centerNext);
+    },
+
+    reverseSandwichPolicy(emp, dateStr, oldStatus, newStatus) {
+      const wasLeave = ["full-day", "half-day", "absent"].includes(oldStatus);
+      const isStillLeave = ["full-day", "half-day", "absent"].includes(
+        newStatus
+      );
       if (!wasLeave || isStillLeave) return;
 
       const currentDate = new Date(dateStr);
 
-      const shouldBeOffDay = (checkDate) => {
-        const dateStr = this.formatDateISO(checkDate);
-        return checkDate.getDay() === 0 || this.offDays.includes(dateStr);
+      const checkAndRevertSandwich = (centerDate) => {
+        const prevDate = new Date(centerDate);
+        prevDate.setDate(centerDate.getDate() - 1);
+        const nextDate = new Date(centerDate);
+        nextDate.setDate(centerDate.getDate() + 1);
+
+        const prevDateStr = this.formatDateISO(prevDate);
+        const centerDateStr = this.formatDateISO(centerDate);
+        const nextDateStr = this.formatDateISO(nextDate);
+
+        const prevStatus = emp.attendanceData[prevDateStr];
+        const nextStatus = emp.attendanceData[nextDateStr];
+        const centerStatus = emp.attendanceData[centerDateStr];
+
+        const isPrevLeave = ["full-day", "half-day", "absent"].includes(
+          prevStatus
+        );
+        const isNextLeave = ["full-day", "half-day", "absent"].includes(
+          nextStatus
+        );
+
+        const wasSandwich =
+          centerStatus === "full-day" &&
+          (new Date(centerDate).getDay() === 0 ||
+            this.offDays.includes(centerDateStr));
+
+        if (!(isPrevLeave && isNextLeave) && wasSandwich) {
+          emp.attendanceData[centerDateStr] = "off-day";
+        }
       };
 
-      const prevDate = new Date(currentDate);
-      prevDate.setDate(currentDate.getDate() - 1);
-      const prevDateStr = this.formatDateISO(prevDate);
+      const centerPrev = new Date(currentDate);
+      centerPrev.setDate(centerPrev.getDate() - 1);
+      checkAndRevertSandwich(centerPrev);
 
-      if (
-        emp.attendanceData[prevDateStr] === "full-day" &&
-        shouldBeOffDay(prevDate)
-      ) {
-        emp.attendanceData[prevDateStr] = "off-day";
-      }
-
-      const nextDate = new Date(currentDate);
-      nextDate.setDate(currentDate.getDate() + 1);
-      const nextDateStr = this.formatDateISO(nextDate);
-
-      if (
-        emp.attendanceData[nextDateStr] === "full-day" &&
-        shouldBeOffDay(nextDate)
-      ) {
-        emp.attendanceData[nextDateStr] = "off-day";
-      }
-    },
-
-    applySandwichPolicy(emp, dateStr, newStatus) {
-      const isLeaveOrAbsent =
-        newStatus === "full-day" ||
-        newStatus === "half-day" ||
-        newStatus === "absent";
-      if (!isLeaveOrAbsent) return;
-
-      const currentDate = new Date(dateStr);
-
-      const isNonWorkingDay = (checkDateStr) => {
-        const status = emp.attendanceData[checkDateStr];
-
-        return status === "off-day" || this.offDays.includes(checkDateStr);
-      };
-
-      const prevDate = new Date(currentDate);
-      prevDate.setDate(currentDate.getDate() - 1);
-      const prevDateStr = this.formatDateISO(prevDate);
-
-      if (isNonWorkingDay(prevDateStr)) {
-        const dayBeforePrev = new Date(prevDate);
-        dayBeforePrev.setDate(prevDate.getDate() - 1);
-        const dayBeforePrevStatus =
-          emp.attendanceData[this.formatDateISO(dayBeforePrev)];
-
-        const isPreviousDayALeave =
-          dayBeforePrevStatus === "full-day" ||
-          dayBeforePrevStatus === "half-day" ||
-          dayBeforePrevStatus === "absent";
-
-        if (!isPreviousDayALeave) {
-          emp.attendanceData[prevDateStr] = "full-day";
-        }
-      }
-
-  
-      const nextDate = new Date(currentDate);
-      nextDate.setDate(currentDate.getDate() + 1);
-      const nextDateStr = this.formatDateISO(nextDate);
-
-      if (isNonWorkingDay(nextDateStr)) {
-        const dayAfterNext = new Date(nextDate);
-        dayAfterNext.setDate(nextDate.getDate() + 1);
-        const dayAfterNextStatus =
-          emp.attendanceData[this.formatDateISO(dayAfterNext)];
-
-        const isNextDayALeave =
-          dayAfterNextStatus === "full-day" ||
-          dayAfterNextStatus === "half-day" ||
-          dayAfterNextStatus === "absent";
-
-        if (!isNextDayALeave) {
-          emp.attendanceData[nextDateStr] = "full-day";
-        }
-      }
+      const centerNext = new Date(currentDate);
+      centerNext.setDate(centerNext.getDate() + 1);
+      checkAndRevertSandwich(centerNext);
     },
 
     recalculateSummary(emp) {
@@ -180,7 +172,6 @@ export const employeeStore = defineStore("employee", {
       emp.halfDayLeave = 0;
       emp.fullDayLeave = 0;
       emp.paidLeave = 0;
-
       for (const status of Object.values(emp.attendanceData)) {
         switch (status) {
           case "present":
@@ -208,15 +199,11 @@ export const employeeStore = defineStore("employee", {
         emp.paySalary = 0;
         return;
       }
-
       const dailySalary = emp.salary / totalWorkingDays;
       let totalSalary = 0;
-
       for (const [dateStr, status] of Object.entries(emp.attendanceData)) {
         const date = new Date(dateStr);
-
         if (date.getMonth() !== month || date.getFullYear() !== year) continue;
-
         switch (status) {
           case "present":
           case "paid-leave":
@@ -231,7 +218,6 @@ export const employeeStore = defineStore("employee", {
             break;
         }
       }
-
       emp.paySalary = parseFloat(totalSalary.toFixed(2));
     },
 
@@ -239,16 +225,13 @@ export const employeeStore = defineStore("employee", {
       let workingDays = 0;
       const date = new Date(year, month, 1);
       const daysInMonth = new Date(year, month + 1, 0).getDate();
-
       for (let day = 1; day <= daysInMonth; day++) {
         date.setDate(day);
         const dayOfWeek = date.getDay();
-
         if (dayOfWeek !== 0 && dayOfWeek !== 6) {
           workingDays++;
         }
       }
-
       return workingDays;
     },
 
@@ -270,14 +253,12 @@ export const employeeStore = defineStore("employee", {
 
     markSundaysAndOffDays(month, year) {
       const days = new Date(year, month + 1, 0).getDate();
-
       this.employees.forEach((emp) => {
         for (let day = 1; day <= days; day++) {
           const date = new Date(year, month, day);
           const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1)
             .toString()
             .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-
           if (date.getDay() === 0) {
             if (!emp.attendanceData) emp.attendanceData = {};
             if (
