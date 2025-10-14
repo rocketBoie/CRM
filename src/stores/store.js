@@ -92,6 +92,7 @@ export const employeeStore = defineStore("employee", {
 
       const shouldBeOffDay = (checkDate) => {
         const dateStr = this.formatDateISO(checkDate);
+
         return checkDate.getDay() === 0 || this.offDays.includes(dateStr);
       };
 
