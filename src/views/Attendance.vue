@@ -49,27 +49,39 @@ function calculateMonthlyStats(attendanceData) {
     fullDayLeave: 0,
     paidLeave: 0,
     offDays: 0,
+    totalWorkingDays: 0,
   };
 
   const days = getDaysInMonth(selectedYear.value, selectedMonth.value);
+
   for (const date of days) {
-    const dateStr = date.toISOString().slice(0, 10);
+    const dayOfWeek = date.getDay();
+    const dateStr = date.toLocaleDateString("en-CA");
+
+    if (dayOfWeek === 0) {
+      stats.offDays++;
+      continue; 
+    }
+
+    stats.totalWorkingDays++; 
+
     const status = attendanceData?.[dateStr];
+
     if (status === "present") stats.totalPresent++;
     else if (status === "half-day") stats.halfDayLeave++;
     else if (status === "full-day") stats.fullDayLeave++;
     else if (status === "paid-leave") stats.paidLeave++;
-    else if (status === "off-day") stats.offDays++;
   }
+
   return stats;
 }
 
 function getAttendancePercentage(stats) {
-  const workingDays = getDaysInMonth(
-    selectedYear.value,
-    selectedMonth.value
-  ).length;
+  const workingDays = stats.totalWorkingDays;
   const presentDays = stats.totalPresent + stats.halfDayLeave * 0.5;
+
+  if (!workingDays || workingDays === 0) return "0.0%";
+
   const percentage = (presentDays / workingDays) * 100;
   return `${percentage.toFixed(1)}%`;
 }
@@ -98,30 +110,26 @@ function calculateMonthlySalary(emp, stats) {
 const employeeStats = computed(() => {
   const month = selectedMonth.value;
   const year = selectedYear.value;
+
   return store.employees.map((emp) => {
     const stats = calculateMonthlyStats(emp.attendanceData);
     const finalSalary = calculateMonthlySalary(emp, stats);
+
     return {
       ...emp,
       stats,
       attendancePercentage: getAttendancePercentage(stats),
-      workingDays: getDaysInMonth(year, month).length,
+      workingDays: stats.totalWorkingDays,
       paySalary: finalSalary,
     };
   });
 });
 
 
-const totalOffDays = computed(() => {
-  let totalOff = 0;
-  store.employees.forEach((emp) => {
-    const stats = calculateMonthlyStats(emp.attendanceData);
-    totalOff += stats.offDays;
-  });
-  const daysInMonth = getDaysInMonth(selectedYear.value, selectedMonth.value);
-  const sundayCount = daysInMonth.filter((date) => date.getDay() === 0).length;
-  return sundayCount;
-});
+// const totalOffDays = computed(() => {
+//   const daysInMonth = getDaysInMonth(selectedYear.value, selectedMonth.value);
+//   return daysInMonth.filter((date) => date.getDay() === 0).length;
+// });
 
 watchEffect(() => {
   store.markSundaysAndOffDays(selectedMonth.value, selectedYear.value);
@@ -131,7 +139,7 @@ function onRowExpanded(e) {
   if (e.expanded) {
     nextTick(() => {
       const visibleRows = e.component.getVisibleRows();
-      const rowIndex = visibleRows.findIndex(row => row.key === e.key);
+      const rowIndex = visibleRows.findIndex((row) => row.key === e.key);
 
       if (rowIndex !== -1) {
         const gridRows = document.querySelectorAll(".dx-data-row");
@@ -144,7 +152,6 @@ function onRowExpanded(e) {
     });
   }
 }
-
 </script>
 
 <template>
@@ -182,7 +189,7 @@ function onRowExpanded(e) {
                 <DxColumn data-field="stats.halfDayLeave" caption="Half-Day" :width="100" alignment="center" />
                 <DxColumn data-field="stats.fullDayLeave" caption="Full-Day" :width="100" alignment="center" />
                 <DxColumn data-field="stats.paidLeave" caption="Paid Leave" :width="100" alignment="center" />
-                <DxColumn data-field="workingDays" caption="Total Days" :width="120" alignment="center" />
+                <DxColumn data-field="workingDays" caption="Working Days" :width="120" alignment="center" />
                 <DxColumn data-field="attendancePercentage" caption="Attendance %" :width="140"
                   cell-template="percentageTemplate" alignment="center" />
                 <DxColumn data-field="paySalary" caption="Salary" :width="120" format="currency" alignment="right" />
