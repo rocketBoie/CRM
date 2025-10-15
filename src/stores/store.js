@@ -105,19 +105,17 @@ export const employeeStore = defineStore("employee", {
           leaveStatuses.includes(nextStatus)
         ) {
           if (currStatus !== "full-day") {
-            // Changing off-day -> full-day
             emp.attendanceData[dateStr] = "full-day";
-            emp.fullDayLeave++;  // increase fullDayLeave count
+            emp.fullDayLeave++;  
           }
         } else if (
           currStatus === "full-day" &&
           (this.offDays.includes(dateStr) || date.getDay() === 0) &&
           !(leaveStatuses.includes(prevStatus) && leaveStatuses.includes(nextStatus))
         ) {
-          // Changing full-day -> off-day
           emp.attendanceData[dateStr] = "off-day";
           if (emp.fullDayLeave > 0) {
-            emp.fullDayLeave--;  // decrease fullDayLeave count safely
+            emp.fullDayLeave--; 
           }
         }
       }

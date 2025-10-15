@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watchEffect, nextTick } from "vue";
+import { useRouter } from 'vue-router'; 
 import { employeeStore } from "../stores/store";
 import SideBar from "../components/SideBar.vue";
 import Calendar from "./Calendar.vue";
@@ -13,6 +14,7 @@ import {
 import "devextreme/dist/css/dx.light.css";
 
 const store = employeeStore();
+const router = useRouter();
 const selectedMonth = ref(new Date().getMonth());
 const selectedYear = ref(new Date().getFullYear());
 
@@ -39,7 +41,6 @@ function getDaysInMonth(year, month) {
   return days;
 }
 
-// Sandwich-aware calculation of monthly attendance stats
 function calculateMonthlyStatsWithSandwich(attendanceData) {
   const stats = {
     totalPresent: 0,
@@ -49,20 +50,19 @@ function calculateMonthlyStatsWithSandwich(attendanceData) {
     offDays: 0,
     sandwichLeaveDays: 0,
     totalWorkingDays: 0,
+    totalUnpaidLeaveDays: 0,
   };
 
   const days = getDaysInMonth(selectedYear.value, selectedMonth.value);
 
-  // Helper to get status for date or "off" if Sunday
   function getStatus(date) {
     const dateStr = date.toLocaleDateString("en-CA");
     const dayOfWeek = date.getDay();
 
-    if (dayOfWeek === 0) return "off"; // Sunday is off day
-    return attendanceData?.[dateStr] || "absent"; // default absent if missing
+    if (dayOfWeek === 0) return "off"; 
+    return attendanceData?.[dateStr] || "absent"; 
   }
 
-  // First pass: count working days and attendance types
   for (const date of days) {
     const status = getStatus(date);
 
@@ -75,26 +75,22 @@ function calculateMonthlyStatsWithSandwich(attendanceData) {
 
     if (status === "present") stats.totalPresent++;
     else if (status === "half-day") stats.halfDayLeave++;
-    else if (status === "full-day") stats.fullDayLeave++;
+    else if (status === "full-day" || status === "absent") {
+      stats.fullDayLeave++;
+      stats.totalUnpaidLeaveDays++; 
+    }
     else if (status === "paid-leave") stats.paidLeave++;
   }
-
-  // Second pass: detect sandwich off days (off days between leave/absent)
+  const leaveStatuses = ["full-day", "half-day", "paid-leave", "absent"];
   for (let i = 0; i < days.length; i++) {
     const date = days[i];
     const dayOfWeek = date.getDay();
-    if (dayOfWeek !== 0) continue; // only Sundays off
+    if (dayOfWeek !== 0) continue; 
 
     const prevStatus = i > 0 ? getStatus(days[i - 1]) : null;
     const nextStatus = i < days.length - 1 ? getStatus(days[i + 1]) : null;
-
-    // Check if both sides are leave or absent (not present or paid leave)
-    const prevIsLeaveOrAbsent =
-      prevStatus &&
-      ["full-day", "half-day", "paid-leave", "absent"].includes(prevStatus);
-    const nextIsLeaveOrAbsent =
-      nextStatus &&
-      ["full-day", "half-day", "paid-leave", "absent"].includes(nextStatus);
+    const prevIsLeaveOrAbsent = prevStatus && leaveStatuses.includes(prevStatus);
+    const nextIsLeaveOrAbsent = nextStatus && leaveStatuses.includes(nextStatus);
 
     if (prevIsLeaveOrAbsent && nextIsLeaveOrAbsent) {
       stats.sandwichLeaveDays++;
@@ -104,51 +100,36 @@ function calculateMonthlyStatsWithSandwich(attendanceData) {
   return stats;
 }
 
-// Attendance percentage calculation from stats
-function getAttendancePercentage(stats, workingDays) {
-  const presentDays = stats.totalPresent + stats.halfDayLeave * 0.5;
+function getAttendancePercentage(stats) {
+  const paidEquivalentDays = stats.totalPresent + stats.halfDayLeave * 0.5 + stats.paidLeave;
 
-  if (!workingDays || workingDays === 0) return "0.0%";
+  if (stats.totalWorkingDays === 0) return "0.0%";
 
-  const percentage = (presentDays / workingDays) * 100;
+  const percentage = (paidEquivalentDays / stats.totalWorkingDays) * 100;
   return `${percentage.toFixed(1)}%`;
 }
 
-// Monthly salary calculation considering sandwich policy
 function calculateMonthlySalary(emp, stats) {
-  const totalDaysInMonth = getDaysInMonth(
+  const totalCalendarDays = getDaysInMonth(
     selectedYear.value,
     selectedMonth.value
   ).length;
 
-  if (totalDaysInMonth === 0) return "0.00";
+  if (totalCalendarDays === 0 || emp.salary === 0) return "0.00";
+  const dailySalary = emp.salary / totalCalendarDays; 
+  const totalUnpaidLossDays = stats.fullDayLeave + stats.sandwichLeaveDays;
+  let totalPaidEquivalentDays = totalCalendarDays 
+                                - totalUnpaidLossDays 
+                                - (stats.halfDayLeave * 0.5);
 
-  const dailySalary = emp.salary / totalDaysInMonth;
+  if (totalPaidEquivalentDays < 0) totalPaidEquivalentDays = 0;
 
-  let paidWorkingDays =
-    stats.totalPresent + stats.halfDayLeave * 0.5 + stats.paidLeave;
-
-  // Count only off days NOT marked as sandwich leave
-  const nonSandwichOffDays = stats.offDays - stats.sandwichLeaveDays;
-
-  if (paidWorkingDays > 0) {
-    paidWorkingDays += nonSandwichOffDays;
-  }
-
-  // Deduct sandwich leave days (unpaid)
-  paidWorkingDays -= stats.sandwichLeaveDays;
-
-  if (paidWorkingDays < 0) paidWorkingDays = 0;
-
-  const totalSalary = paidWorkingDays * dailySalary;
+  const totalSalary = totalPaidEquivalentDays * dailySalary;
   return totalSalary.toFixed(2);
 }
 
-const employeeStats = computed(() => {
-  const month = selectedMonth.value;
-  const year = selectedYear.value;
-  const totalWorkingDays = store.getWorkingDaysInMonth(month, year);
 
+const employeeStats = computed(() => {
   return store.employees.map((emp) => {
     const stats = calculateMonthlyStatsWithSandwich(emp.attendanceData);
 
@@ -157,8 +138,8 @@ const employeeStats = computed(() => {
     return {
       ...emp,
       stats,
-      attendancePercentage: getAttendancePercentage(stats, totalWorkingDays),
-      workingDays: totalWorkingDays,
+      attendancePercentage: getAttendancePercentage(stats),
+      workingDays: stats.totalWorkingDays, 
       paySalary: Number(salary),
     };
   });
@@ -186,6 +167,11 @@ function onRowExpanded(e) {
     });
   }
 }
+
+function navigateToPayroll(employeeId) {
+    const path = `/payroll/${employeeId}/${monthYear.value}`;
+    router.push(path);
+}
 </script>
 
 <template>
@@ -199,15 +185,15 @@ function onRowExpanded(e) {
     <div class="ml-64 p-8">
       <main>
         <h1 class="text-4xl font-extrabold mb-8 text-gray-800">
-          Employee Attendance Summary
+          Employee Attendance & Payroll Summary 📊
         </h1>
 
-        <div class="mb-6">
-          <label class="font-medium mr-2 text-gray-700">Select Month:</label>
+        <div class="mb-6 flex items-center space-x-4 bg-white p-4 rounded-lg shadow-md border border-gray-200">
+          <label class="font-medium text-lg text-indigo-700">View Data For:</label>
           <input
             type="month"
             v-model="monthYear"
-            class="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="border border-gray-300 px-3 py-2 rounded-md shadow-sm text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
           />
         </div>
 
@@ -215,12 +201,12 @@ function onRowExpanded(e) {
           v-if="store.employees.length === 0"
           class="text-gray-500 text-center py-10"
         >
-          No employee data available.
+          No employee data available. Please add employees to the store.
         </div>
         <div v-else>
           <div class="overflow-x-auto">
             <div
-              class="min-w-full bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200"
+              class="min-w-full bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200"
             >
               <DxDataGrid
                 :data-source="employeeStats"
@@ -244,37 +230,41 @@ function onRowExpanded(e) {
                 />
                 <DxColumn
                   data-field="name"
-                  caption="Name"
+                  caption="Employee Name"
                   alignment="left"
-                  css-class="font-semibold text-blue-800"
+                  css-class="font-semibold text-gray-800"
                 />
                 <DxColumn
                   data-field="stats.totalPresent"
                   caption="Present"
                   :width="100"
                   alignment="center"
+                  css-class="text-green-600"
                 />
                 <DxColumn
                   data-field="stats.halfDayLeave"
                   caption="Half-Day"
                   :width="100"
                   alignment="center"
+                  css-class="text-orange-600"
                 />
                 <DxColumn
                   data-field="stats.fullDayLeave"
-                  caption="Full-Day"
-                  :width="100"
+                  caption="Full-Day/Absent"
+                  :width="140"
                   alignment="center"
+                  css-class="text-red-600"
                 />
                 <DxColumn
                   data-field="stats.paidLeave"
                   caption="Paid Leave"
                   :width="100"
                   alignment="center"
+                  css-class="text-blue-600"
                 />
                 <DxColumn
                   data-field="workingDays"
-                  caption="Working Days"
+                  caption="Work Days"
                   :width="120"
                   alignment="center"
                 />
@@ -287,21 +277,40 @@ function onRowExpanded(e) {
                 />
                 <DxColumn
                   data-field="paySalary"
-                  caption="Salary"
-                  :width="120"
+                  caption="Net Salary"
+                  :width="150"
                   format="currency"
                   alignment="right"
+                  css-class="font-extrabold text-indigo-700 text-lg"
+                />
+                
+                <DxColumn 
+                    caption="Payroll Action" 
+                    :width="140" 
+                    alignment="center" 
+                    cell-template="payrollButtonTemplate" 
                 />
 
                 <template #percentageTemplate="{ data }">
-                  <span class="font-bold text-green-700">{{ data.value }}</span>
+                  <span class="font-bold" :class="data.value.startsWith('100') ? 'text-green-700' : 'text-orange-700'">{{ data.value }}</span>
                 </template>
+                
+                <template #payrollButtonTemplate="{ data }">
+                    <button 
+                        @click="navigateToPayroll(data.data.id)"
+                        class="px-3 py-1 text-sm bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition duration-150 shadow-md font-medium"
+                        title="View Full Payroll Details"
+                    >
+                        View Payroll 🧾
+                    </button>
+                </template>
+
 
                 <DxMasterDetail :enabled="true" template="employeeCalendarDetail" />
 
                 <template #employeeCalendarDetail="{ data: { data: emp } }">
-                  <div class="p-4 bg-gray-100 border-t border-gray-300">
-                    <h3 class="text-2xl font-bold mb-3 text-indigo-700">
+                  <div class="p-6 bg-gray-100 border-t border-gray-300">
+                    <h3 class="text-2xl font-bold mb-4 text-indigo-700">
                       Attendance Calendar for {{ emp.name }} ({{ monthYear }})
                     </h3>
                     <Calendar
@@ -309,6 +318,9 @@ function onRowExpanded(e) {
                       :initial-month="selectedMonth"
                       :initial-year="selectedYear"
                     />
+                    <div class="mt-4 text-sm text-gray-600">
+                        <p class="font-semibold">Calculated Sandwich Days (Unpaid): <span class="text-red-500">{{ emp.stats.sandwichLeaveDays }}</span></p>
+                    </div>
                   </div>
                 </template>
               </DxDataGrid>
