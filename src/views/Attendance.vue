@@ -1,29 +1,18 @@
 <script setup>
-import { ref, computed, watchEffect } from "vue";
+import { ref, computed, watchEffect, nextTick } from "vue";
 import { employeeStore } from "../stores/store";
 import SideBar from "../components/SideBar.vue";
 import Calendar from "./Calendar.vue";
-import { nextTick } from "vue";
-import {
-  DxDataGrid,
-  DxColumn,
-  DxPaging,
-  DxSearchPanel,
-  DxEditing,
-  DxMasterDetail,
-} from "devextreme-vue/data-grid";
+import { DxDataGrid, DxColumn, DxPaging, DxSearchPanel, DxMasterDetail } from "devextreme-vue/data-grid";
 import "devextreme/dist/css/dx.light.css";
 
 const store = employeeStore();
-
 const selectedMonth = ref(new Date().getMonth());
 const selectedYear = ref(new Date().getFullYear());
 
 const monthYear = computed({
   get() {
-    return `${selectedYear.value}-${(selectedMonth.value + 1)
-      .toString()
-      .padStart(2, "0")}`;
+    return `${selectedYear.value}-${(selectedMonth.value + 1).toString().padStart(2, "0")}`;
   },
   set(value) {
     const [year, month] = value.split("-");
@@ -60,10 +49,10 @@ function calculateMonthlyStats(attendanceData) {
 
     if (dayOfWeek === 0) {
       stats.offDays++;
-      continue; 
+      continue;
     }
 
-    stats.totalWorkingDays++; 
+    stats.totalWorkingDays++;
 
     const status = attendanceData?.[dateStr];
 
@@ -76,9 +65,8 @@ function calculateMonthlyStats(attendanceData) {
   return stats;
 }
 
-function getAttendancePercentage(stats) {
-  const workingDays = stats.totalWorkingDays;
-  const presentDays = stats.totalPresent + stats.halfDayLeave * 0.5;
+function getAttendancePercentage(emp, workingDays) { 
+  const presentDays = emp.totalPresent + emp.halfDayLeave * 0.5;
 
   if (!workingDays || workingDays === 0) return "0.0%";
 
@@ -110,29 +98,34 @@ function calculateMonthlySalary(emp, stats) {
 const employeeStats = computed(() => {
   const month = selectedMonth.value;
   const year = selectedYear.value;
+  const totalWorkingDays = store.getWorkingDaysInMonth(month, year);
 
   return store.employees.map((emp) => {
-    const stats = calculateMonthlyStats(emp.attendanceData);
-    const finalSalary = calculateMonthlySalary(emp, stats);
+   
+    const stats = {
+        totalPresent: emp.totalPresent,
+        halfDayLeave: emp.halfDayLeave,
+        fullDayLeave: emp.fullDayLeave,
+        paidLeave: emp.paidLeave,
+        
+    };
+    
+ 
 
     return {
       ...emp,
-      stats,
-      attendancePercentage: getAttendancePercentage(stats),
-      workingDays: stats.totalWorkingDays,
-      paySalary: finalSalary,
+      stats, 
+      attendancePercentage: getAttendancePercentage(emp, totalWorkingDays),
+      workingDays: totalWorkingDays, 
+      paySalary: emp.paySalary, 
     };
   });
 });
 
-
-// const totalOffDays = computed(() => {
-//   const daysInMonth = getDaysInMonth(selectedYear.value, selectedMonth.value);
-//   return daysInMonth.filter((date) => date.getDay() === 0).length;
-// });
-
 watchEffect(() => {
+ 
   store.markSundaysAndOffDays(selectedMonth.value, selectedYear.value);
+  store.refreshAttendanceForAll(selectedMonth.value, selectedYear.value);
 });
 
 function onRowExpanded(e) {
@@ -168,31 +161,94 @@ function onRowExpanded(e) {
 
         <div class="mb-6">
           <label class="font-medium mr-2 text-gray-700">Select Month:</label>
-          <input type="month" v-model="monthYear"
-            class="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          <input
+            type="month"
+            v-model="monthYear"
+            class="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
 
-        <div v-if="store.employees.length === 0" class="text-gray-500 text-center py-10">
+        <div
+          v-if="store.employees.length === 0"
+          class="text-gray-500 text-center py-10"
+        >
           No employee data available.
         </div>
         <div v-else>
           <div class="overflow-x-auto">
-            <div class="min-w-full bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
-              <DxDataGrid :data-source="employeeStats" key-expr="id" :show-borders="true"
-                :row-alternation-enabled="true" @row-expanded="onRowExpanded">
-                <DxSearchPanel :visible="true" :width="300" placeholder="Search employee name or ID..." />
+            <div
+              class="min-w-full bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200"
+            >
+              <DxDataGrid
+                :data-source="employeeStats"
+                key-expr="id"
+                :show-borders="true"
+                :row-alternation-enabled="true"
+                @row-expanded="onRowExpanded"
+              >
+                <DxSearchPanel
+                  :visible="true"
+                  :width="300"
+                  placeholder="Search employee name or ID..."
+                />
                 <DxPaging :page-size="12" />
 
-                <DxColumn data-field="id" caption="ID" :width="70" alignment="left" />
-                <DxColumn data-field="name" caption="Name" alignment="left" css-class="font-semibold text-blue-800" />
-                <DxColumn data-field="stats.totalPresent" caption="Present" :width="100" alignment="center" />
-                <DxColumn data-field="stats.halfDayLeave" caption="Half-Day" :width="100" alignment="center" />
-                <DxColumn data-field="stats.fullDayLeave" caption="Full-Day" :width="100" alignment="center" />
-                <DxColumn data-field="stats.paidLeave" caption="Paid Leave" :width="100" alignment="center" />
-                <DxColumn data-field="workingDays" caption="Working Days" :width="120" alignment="center" />
-                <DxColumn data-field="attendancePercentage" caption="Attendance %" :width="140"
-                  cell-template="percentageTemplate" alignment="center" />
-                <DxColumn data-field="paySalary" caption="Salary" :width="120" format="currency" alignment="right" />
+                <DxColumn
+                  data-field="id"
+                  caption="ID"
+                  :width="70"
+                  alignment="left"
+                />
+                <DxColumn
+                  data-field="name"
+                  caption="Name"
+                  alignment="left"
+                  css-class="font-semibold text-blue-800"
+                />
+                <DxColumn
+                  data-field="stats.totalPresent"
+                  caption="Present"
+                  :width="100"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="stats.halfDayLeave"
+                  caption="Half-Day"
+                  :width="100"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="stats.fullDayLeave"
+                  caption="Full-Day"
+                  :width="100"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="stats.paidLeave"
+                  caption="Paid Leave"
+                  :width="100"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="workingDays"
+                  caption="Working Days"
+                  :width="120"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="attendancePercentage"
+                  caption="Attendance %"
+                  :width="140"
+                  cell-template="percentageTemplate"
+                  alignment="center"
+                />
+                <DxColumn
+                  data-field="paySalary"
+                  caption="Salary"
+                  :width="120"
+                  format="currency"
+                  alignment="right"
+                />
 
                 <template #percentageTemplate="{ data }">
                   <span class="font-bold text-green-700">{{ data.value }}</span>
@@ -205,7 +261,11 @@ function onRowExpanded(e) {
                     <h3 class="text-2xl font-bold mb-3 text-indigo-700">
                       Attendance Calendar for {{ emp.name }} ({{ monthYear }})
                     </h3>
-                    <Calendar :employee-id="emp.id" :initial-month="selectedMonth" :initial-year="selectedYear" />
+                    <Calendar
+                      :employee-id="emp.id"
+                      :initial-month="selectedMonth"
+                      :initial-year="selectedYear"
+                    />
                   </div>
                 </template>
               </DxDataGrid>

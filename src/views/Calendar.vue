@@ -77,7 +77,6 @@ function formatDateISO(date) {
   return `${year}-${month}-${day}`;
 }
 
-
 const daysInMonth = computed(() => {
   const date = new Date(selectedYear.value, selectedMonth.value, 1);
   const dates = [];
@@ -106,6 +105,13 @@ function toggleAttendance(date) {
   let nextIndex = (currentIndex + 1) % ATTENDANCE_STATUSES.length;
   let nextStatus = ATTENDANCE_STATUSES[nextIndex];
 
+  // Check if status is "off-day", and toggle between "off-day" and "full-day"
+  if (currentStatus === "off-day") {
+    nextStatus = "full-day";
+  } else if (currentStatus === "full-day") {
+    nextStatus = "off-day";
+  }
+
   while (nextStatus === "off-day" && date.getDay() !== 0) {
     nextIndex = (nextIndex + 1) % ATTENDANCE_STATUSES.length;
     nextStatus = ATTENDANCE_STATUSES[nextIndex];
@@ -120,9 +126,18 @@ function getTooltip(date) {
 
   if (dateOnly > today) return "Cannot edit future date";
   if (!employee.value) return "Loading...";
+
   if (date.getDay() === 0) return "Off Day (Sunday)";
 
   const status = employee.value.attendanceData?.[formatDateISO(date)];
+
+  if (status === "off-day") {
+    return "Off Day (Click to convert to Full-Day Leave)";
+  }
+
+  if (status === "full-day") {
+    return "Full Day Leave (Click to convert to Off Day)";
+  }
 
   return status
     ? status
@@ -198,6 +213,7 @@ function getTooltip(date) {
       <div class="mt-6 flex flex-wrap gap-4 text-sm justify-center p-3 border-t border-gray-200">
         <div class="flex items-center space-x-1">
           <div class="w-4 h-4 bg-green-300 rounded"></div>
+         
           <span>Present</span>
         </div>
         <div class="flex items-center space-x-1">
