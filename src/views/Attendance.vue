@@ -3,7 +3,13 @@ import { ref, computed, watchEffect, nextTick } from "vue";
 import { employeeStore } from "../stores/store";
 import SideBar from "../components/SideBar.vue";
 import Calendar from "./Calendar.vue";
-import { DxDataGrid, DxColumn, DxPaging, DxSearchPanel, DxMasterDetail } from "devextreme-vue/data-grid";
+import {
+  DxDataGrid,
+  DxColumn,
+  DxPaging,
+  DxSearchPanel,
+  DxMasterDetail,
+} from "devextreme-vue/data-grid";
 import "devextreme/dist/css/dx.light.css";
 
 const store = employeeStore();
@@ -12,7 +18,9 @@ const selectedYear = ref(new Date().getFullYear());
 
 const monthYear = computed({
   get() {
-    return `${selectedYear.value}-${(selectedMonth.value + 1).toString().padStart(2, "0")}`;
+    return `${selectedYear.value}-${(selectedMonth.value + 1)
+      .toString()
+      .padStart(2, "0")}`;
   },
   set(value) {
     const [year, month] = value.split("-");
@@ -31,30 +39,39 @@ function getDaysInMonth(year, month) {
   return days;
 }
 
-function calculateMonthlyStats(attendanceData) {
+// Sandwich-aware calculation of monthly attendance stats
+function calculateMonthlyStatsWithSandwich(attendanceData) {
   const stats = {
     totalPresent: 0,
     halfDayLeave: 0,
     fullDayLeave: 0,
     paidLeave: 0,
     offDays: 0,
+    sandwichLeaveDays: 0,
     totalWorkingDays: 0,
   };
 
   const days = getDaysInMonth(selectedYear.value, selectedMonth.value);
 
-  for (const date of days) {
-    const dayOfWeek = date.getDay();
+  // Helper to get status for date or "off" if Sunday
+  function getStatus(date) {
     const dateStr = date.toLocaleDateString("en-CA");
+    const dayOfWeek = date.getDay();
 
-    if (dayOfWeek === 0) {
+    if (dayOfWeek === 0) return "off"; // Sunday is off day
+    return attendanceData?.[dateStr] || "absent"; // default absent if missing
+  }
+
+  // First pass: count working days and attendance types
+  for (const date of days) {
+    const status = getStatus(date);
+
+    if (status === "off") {
       stats.offDays++;
       continue;
     }
 
     stats.totalWorkingDays++;
-
-    const status = attendanceData?.[dateStr];
 
     if (status === "present") stats.totalPresent++;
     else if (status === "half-day") stats.halfDayLeave++;
@@ -62,11 +79,34 @@ function calculateMonthlyStats(attendanceData) {
     else if (status === "paid-leave") stats.paidLeave++;
   }
 
+  // Second pass: detect sandwich off days (off days between leave/absent)
+  for (let i = 0; i < days.length; i++) {
+    const date = days[i];
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek !== 0) continue; // only Sundays off
+
+    const prevStatus = i > 0 ? getStatus(days[i - 1]) : null;
+    const nextStatus = i < days.length - 1 ? getStatus(days[i + 1]) : null;
+
+    // Check if both sides are leave or absent (not present or paid leave)
+    const prevIsLeaveOrAbsent =
+      prevStatus &&
+      ["full-day", "half-day", "paid-leave", "absent"].includes(prevStatus);
+    const nextIsLeaveOrAbsent =
+      nextStatus &&
+      ["full-day", "half-day", "paid-leave", "absent"].includes(nextStatus);
+
+    if (prevIsLeaveOrAbsent && nextIsLeaveOrAbsent) {
+      stats.sandwichLeaveDays++;
+    }
+  }
+
   return stats;
 }
 
-function getAttendancePercentage(emp, workingDays) { 
-  const presentDays = emp.totalPresent + emp.halfDayLeave * 0.5;
+// Attendance percentage calculation from stats
+function getAttendancePercentage(stats, workingDays) {
+  const presentDays = stats.totalPresent + stats.halfDayLeave * 0.5;
 
   if (!workingDays || workingDays === 0) return "0.0%";
 
@@ -74,6 +114,7 @@ function getAttendancePercentage(emp, workingDays) {
   return `${percentage.toFixed(1)}%`;
 }
 
+// Monthly salary calculation considering sandwich policy
 function calculateMonthlySalary(emp, stats) {
   const totalDaysInMonth = getDaysInMonth(
     selectedYear.value,
@@ -87,9 +128,17 @@ function calculateMonthlySalary(emp, stats) {
   let paidWorkingDays =
     stats.totalPresent + stats.halfDayLeave * 0.5 + stats.paidLeave;
 
-  if (stats.totalPresent > 0 || stats.halfDayLeave > 0 || stats.paidLeave > 0) {
-    paidWorkingDays += stats.offDays;
+  // Count only off days NOT marked as sandwich leave
+  const nonSandwichOffDays = stats.offDays - stats.sandwichLeaveDays;
+
+  if (paidWorkingDays > 0) {
+    paidWorkingDays += nonSandwichOffDays;
   }
+
+  // Deduct sandwich leave days (unpaid)
+  paidWorkingDays -= stats.sandwichLeaveDays;
+
+  if (paidWorkingDays < 0) paidWorkingDays = 0;
 
   const totalSalary = paidWorkingDays * dailySalary;
   return totalSalary.toFixed(2);
@@ -101,29 +150,21 @@ const employeeStats = computed(() => {
   const totalWorkingDays = store.getWorkingDaysInMonth(month, year);
 
   return store.employees.map((emp) => {
-   
-    const stats = {
-        totalPresent: emp.totalPresent,
-        halfDayLeave: emp.halfDayLeave,
-        fullDayLeave: emp.fullDayLeave,
-        paidLeave: emp.paidLeave,
-        
-    };
-    
- 
+    const stats = calculateMonthlyStatsWithSandwich(emp.attendanceData);
+
+    const salary = calculateMonthlySalary(emp, stats);
 
     return {
       ...emp,
-      stats, 
-      attendancePercentage: getAttendancePercentage(emp, totalWorkingDays),
-      workingDays: totalWorkingDays, 
-      paySalary: emp.paySalary, 
+      stats,
+      attendancePercentage: getAttendancePercentage(stats, totalWorkingDays),
+      workingDays: totalWorkingDays,
+      paySalary: Number(salary),
     };
   });
 });
 
 watchEffect(() => {
- 
   store.markSundaysAndOffDays(selectedMonth.value, selectedYear.value);
   store.refreshAttendanceForAll(selectedMonth.value, selectedYear.value);
 });
@@ -149,7 +190,9 @@ function onRowExpanded(e) {
 
 <template>
   <div class="min-h-screen bg-gray-50">
-    <div class="fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 shadow-md z-10">
+    <div
+      class="fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 shadow-md z-10"
+    >
       <SideBar class="w-64 h-full" />
     </div>
 

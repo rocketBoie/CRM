@@ -8,7 +8,10 @@ export const employeeStore = defineStore("employee", {
       id: Number(emp.id),
       attendanceData: emp.attendanceData || {},
       paySalary: 0,
-      
+      totalPresent: emp.totalPresent || 0,
+      halfDayLeave: emp.halfDayLeave || 0,
+      fullDayLeave: emp.fullDayLeave || 0,
+      paidLeave: emp.paidLeave || 0,
     })),
     offDays: [],
   }),
@@ -19,7 +22,7 @@ export const employeeStore = defineStore("employee", {
     refreshAttendanceForAll(month, year) {
       this.employees.forEach((emp) => {
         this.applySandwichPolicyGlobal(emp);
-        this.recalculateSummary(emp, month, year);
+        this.recalculateSummary(emp);
         this.calculateSalary(emp, month, year);
       });
     },
@@ -37,6 +40,10 @@ export const employeeStore = defineStore("employee", {
         department: newUser.department || "",
         salary: newUser.salary || 0,
         paySalary: 0,
+        totalPresent: 0,
+        halfDayLeave: 0,
+        fullDayLeave: 0,
+        paidLeave: 0,
         attendanceData: {},
       });
     },
@@ -63,7 +70,7 @@ export const employeeStore = defineStore("employee", {
       emp.attendanceData[dateStr] = status;
 
       this.applySandwichPolicyGlobal(emp);
-      this.recalculateSummary(emp, month, year);
+      this.recalculateSummary(emp);
       this.calculateSalary(emp, month, year);
     },
 
@@ -71,59 +78,6 @@ export const employeeStore = defineStore("employee", {
       const leaveStatuses = ["full-day", "absent"];
       const dates = Object.keys(emp.attendanceData).sort();
 
-      // Convert string dates to Date objects for sorting and processing
-      const dateObjects = dates.map((dateStr) => new Date(dateStr));
-
-      // Helper: Check if dateStr is an off-day or holiday
-      const isOffDayOrHoliday = (dateStr, date) =>
-        emp.attendanceData[dateStr] === "off-day" ||
-        this.offDays.includes(dateStr) ||
-        date.getDay() === 0; // Sunday
-
-      // Scan through dates to find multi-day sandwiches
-      for (let i = 0; i < dateObjects.length; i++) {
-        const date = dateObjects[i];
-        const dateStr = dates[i];
-        const status = emp.attendanceData[dateStr];
-
-        if (!status) continue;
-
-        // Only start sandwich check if current day is leave (full-day/absent)
-        if (leaveStatuses.includes(status)) {
-          // Try to find next leave date ahead skipping off-days
-          let j = i + 1;
-
-          while (j < dateObjects.length) {
-            const nextDate = dateObjects[j];
-            const nextStr = dates[j];
-            const nextStatus = emp.attendanceData[nextStr];
-
-            if (!nextStatus) break;
-
-            if (leaveStatuses.includes(nextStatus)) {
-              // Found leave day on right boundary, now check intermediate days
-              // All intermediate days between i and j that are off-day or holiday => convert to full-day
-              for (let k = i + 1; k < j; k++) {
-                const midDateStr = dates[k];
-                const midStatus = emp.attendanceData[midDateStr];
-                const midDate = dateObjects[k];
-                if (isOffDayOrHoliday(midDateStr, midDate)) {
-                  if (midStatus !== "full-day") {
-                    emp.attendanceData[midDateStr] = "full-day";
-                  }
-                }
-              }
-              break;
-            } else if (!isOffDayOrHoliday(nextStr, nextDate)) {
-              // Encountered a day that is not leave or off-day, no sandwich here
-              break;
-            }
-            j++;
-          }
-        }
-      }
-
-      // Revert off-days that are wrongly marked full-day without sandwich
       for (const dateStr of dates) {
         const currStatus = emp.attendanceData[dateStr];
         if (!currStatus) continue;
@@ -146,53 +100,54 @@ export const employeeStore = defineStore("employee", {
           date.getDay() === 0;
 
         if (
+          isHoliday &&
+          leaveStatuses.includes(prevStatus) &&
+          leaveStatuses.includes(nextStatus)
+        ) {
+          if (currStatus !== "full-day") {
+            // Changing off-day -> full-day
+            emp.attendanceData[dateStr] = "full-day";
+            emp.fullDayLeave++;  // increase fullDayLeave count
+          }
+        } else if (
           currStatus === "full-day" &&
           (this.offDays.includes(dateStr) || date.getDay() === 0) &&
           !(leaveStatuses.includes(prevStatus) && leaveStatuses.includes(nextStatus))
         ) {
-          // Changing full-day -> off-day if not sandwich
+          // Changing full-day -> off-day
           emp.attendanceData[dateStr] = "off-day";
+          if (emp.fullDayLeave > 0) {
+            emp.fullDayLeave--;  // decrease fullDayLeave count safely
+          }
         }
       }
     },
 
-    recalculateSummary(emp, month, year) {
-      // Calculate monthly attendance stats only for the given month and year
-      let totalPresent = 0;
-      let halfDayLeave = 0;
-      let fullDayLeave = 0;
-      let paidLeave = 0;
+    recalculateSummary(emp) {
+      emp.totalPresent = 0;
+      emp.halfDayLeave = 0;
+      emp.fullDayLeave = 0;
+      emp.paidLeave = 0;
 
-      for (const [dateStr, status] of Object.entries(emp.attendanceData || {})) {
-        const date = new Date(dateStr);
-        if (date.getMonth() !== month || date.getFullYear() !== year) continue;
-
+      for (const status of Object.values(emp.attendanceData || {})) {
         switch (status) {
           case "present":
-            totalPresent++;
+            emp.totalPresent++;
             break;
           case "half-day":
-            halfDayLeave++;
+            emp.halfDayLeave++;
             break;
           case "full-day":
           case "absent":
-            fullDayLeave++;
+            emp.fullDayLeave++;
             break;
           case "paid-leave":
-            paidLeave++;
+            emp.paidLeave++;
             break;
           default:
             break;
         }
       }
-
-      // Store monthly stats on employee in a special property
-      emp.monthlyStats = {
-        totalPresent,
-        halfDayLeave,
-        fullDayLeave,
-        paidLeave,
-      };
     },
 
     calculateSalary(emp, month, year) {
@@ -223,7 +178,6 @@ export const employeeStore = defineStore("employee", {
             break;
           case "full-day":
           case "absent":
-            // No pay
             break;
           default:
             break;
@@ -276,18 +230,19 @@ export const employeeStore = defineStore("employee", {
     getWorkingDaysInMonth(month, year) {
       let workingDays = 0;
       const daysInMonth = new Date(year, month + 1, 0).getDate();
-
+    
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
         const dayOfWeek = date.getDay();
-
+        
         if (dayOfWeek !== 0) {
           workingDays++;
         }
       }
-
+    
       return workingDays;
     },
+    
 
     formatDateISO(date) {
       return date.toISOString().slice(0, 10);
