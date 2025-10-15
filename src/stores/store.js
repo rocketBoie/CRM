@@ -8,7 +8,7 @@ export const employeeStore = defineStore("employee", {
       id: Number(emp.id),
       attendanceData: emp.attendanceData || {},
       paySalary: 0,
-      // Removed global counters, these will be calculated per month
+      
     })),
     offDays: [],
   }),
@@ -71,6 +71,59 @@ export const employeeStore = defineStore("employee", {
       const leaveStatuses = ["full-day", "absent"];
       const dates = Object.keys(emp.attendanceData).sort();
 
+      // Convert string dates to Date objects for sorting and processing
+      const dateObjects = dates.map((dateStr) => new Date(dateStr));
+
+      // Helper: Check if dateStr is an off-day or holiday
+      const isOffDayOrHoliday = (dateStr, date) =>
+        emp.attendanceData[dateStr] === "off-day" ||
+        this.offDays.includes(dateStr) ||
+        date.getDay() === 0; // Sunday
+
+      // Scan through dates to find multi-day sandwiches
+      for (let i = 0; i < dateObjects.length; i++) {
+        const date = dateObjects[i];
+        const dateStr = dates[i];
+        const status = emp.attendanceData[dateStr];
+
+        if (!status) continue;
+
+        // Only start sandwich check if current day is leave (full-day/absent)
+        if (leaveStatuses.includes(status)) {
+          // Try to find next leave date ahead skipping off-days
+          let j = i + 1;
+
+          while (j < dateObjects.length) {
+            const nextDate = dateObjects[j];
+            const nextStr = dates[j];
+            const nextStatus = emp.attendanceData[nextStr];
+
+            if (!nextStatus) break;
+
+            if (leaveStatuses.includes(nextStatus)) {
+              // Found leave day on right boundary, now check intermediate days
+              // All intermediate days between i and j that are off-day or holiday => convert to full-day
+              for (let k = i + 1; k < j; k++) {
+                const midDateStr = dates[k];
+                const midStatus = emp.attendanceData[midDateStr];
+                const midDate = dateObjects[k];
+                if (isOffDayOrHoliday(midDateStr, midDate)) {
+                  if (midStatus !== "full-day") {
+                    emp.attendanceData[midDateStr] = "full-day";
+                  }
+                }
+              }
+              break;
+            } else if (!isOffDayOrHoliday(nextStr, nextDate)) {
+              // Encountered a day that is not leave or off-day, no sandwich here
+              break;
+            }
+            j++;
+          }
+        }
+      }
+
+      // Revert off-days that are wrongly marked full-day without sandwich
       for (const dateStr of dates) {
         const currStatus = emp.attendanceData[dateStr];
         if (!currStatus) continue;
@@ -93,20 +146,11 @@ export const employeeStore = defineStore("employee", {
           date.getDay() === 0;
 
         if (
-          isHoliday &&
-          leaveStatuses.includes(prevStatus) &&
-          leaveStatuses.includes(nextStatus)
-        ) {
-          if (currStatus !== "full-day") {
-            // Changing off-day -> full-day
-            emp.attendanceData[dateStr] = "full-day";
-          }
-        } else if (
           currStatus === "full-day" &&
           (this.offDays.includes(dateStr) || date.getDay() === 0) &&
           !(leaveStatuses.includes(prevStatus) && leaveStatuses.includes(nextStatus))
         ) {
-          // Changing full-day -> off-day
+          // Changing full-day -> off-day if not sandwich
           emp.attendanceData[dateStr] = "off-day";
         }
       }

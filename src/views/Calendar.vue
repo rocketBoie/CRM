@@ -105,7 +105,6 @@ function toggleAttendance(date) {
   let nextIndex = (currentIndex + 1) % ATTENDANCE_STATUSES.length;
   let nextStatus = ATTENDANCE_STATUSES[nextIndex];
 
-  // Check if status is "off-day", and toggle between "off-day" and "full-day"
   if (currentStatus === "off-day") {
     nextStatus = "full-day";
   } else if (currentStatus === "full-day") {
