@@ -120,6 +120,9 @@ export const employeeStore = defineStore("employee", {
         }
       }
     },
+    add(){
+
+    },
 
     recalculateSummary(emp) {
       emp.totalPresent = 0;
